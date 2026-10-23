@@ -1,8 +1,11 @@
 import { validateScenario } from './validation';
 import { scenarioFingerprint } from './coalitions';
+import { baselineTurnout } from './data';
 import type { Result, Scenario } from './types';
 
 export const STORAGE_KEY = 'laboratorium-koalicji:scenario:v1';
+const MAX_STATE_BYTES = 100_000;
+const SCENARIO_KEYS = ['schemaVersion', 'modelVersion', 'dataVersion', 'pollId', 'name', 'entities', 'lists', 'residual', 'turnout', 'geographyMode', 'allianceSelection', 'notes', 'familyLabels'];
 export const LIMITATIONS = [
   'Model scenariuszowy, nie prognoza ani prawdopodobieństwo wyniku wyborów.',
   'Poparcie w okręgach jest przybliżeniem opartym na 2023 r.; część podmiotów dzieli profile historyczne.',
@@ -20,26 +23,35 @@ export const LIMITATIONS = [
 /** Export inputs only; provenance is descriptive and never overrides validated model inputs. */
 export function serializeScenario(scenario: Scenario): string {
   validateScenario(scenario);
-  return JSON.stringify({ ...scenario, provenance: { regularizer: 0.01, limitations: LIMITATIONS, sourceManifest: 'src/data/source-manifest.json' } }, null, 2);
+  const text = JSON.stringify({ ...scenario, provenance: { regularizer: 0.01, limitations: LIMITATIONS, sourceManifest: 'src/data/source-manifest.json' } }, null, 2);
+  if (new TextEncoder().encode(text).length > MAX_STATE_BYTES) throw new Error('Scenariusz jest zbyt duży (limit 100 kB). Skróć notatki.');
+  return text;
 }
 
 export function parseScenario(text: string): Scenario {
-  if (text.length > 100_000) throw new Error('Plik scenariusza jest zbyt duży (limit 100 kB).');
+  if (new TextEncoder().encode(text).length > MAX_STATE_BYTES) throw new Error('Plik scenariusza jest zbyt duży (limit 100 kB).');
   let input: unknown;
   try { input = JSON.parse(text); } catch { throw new Error('Nie można odczytać JSON scenariusza.'); }
-  return validateScenario(input);
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) return validateScenario(input);
+  const record = input as Record<string, unknown>;
+  const unexpected = Object.keys(record).find((key) => key !== 'provenance' && !SCENARIO_KEYS.includes(key));
+  if (unexpected) throw new Error(`Nieznane pole scenariusza: ${unexpected}. Wyniki pochodne nie są danymi wejściowymi.`);
+  // Exported provenance is descriptive, not an extra authoritative input or fingerprint component.
+  return validateScenario(Object.fromEntries(SCENARIO_KEYS.map((key) => [key, record[key]])));
 }
 
 /** Compact versioned UTF-8 state in the hash, preserving the GitHub Pages path. */
 export function scenarioToHash(scenario: Scenario): string {
   validateScenario(scenario);
-  const compact = JSON.stringify({ ...scenario, notes: scenario.notes.slice(-8) });
+  const compact = JSON.stringify(scenario);
   const bytes = new TextEncoder().encode(compact);
-  return '#s=' + btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const hash = '#s=' + btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  if (hash.length > MAX_STATE_BYTES) throw new Error('Scenariusz jest zbyt duży do linku. Skróć notatki lub wyeksportuj JSON.');
+  return hash;
 }
 
 export function scenarioFromHash(hash: string): Scenario {
-  if (!hash.startsWith('#s=') || hash.length > 100_000) throw new Error('Nieprawidłowy link scenariusza.');
+  if (!/^#s=[A-Za-z0-9_-]+$/.test(hash) || hash.length > MAX_STATE_BYTES) throw new Error('Nieprawidłowy link scenariusza.');
   try {
     const bytes = Uint8Array.from(atob(hash.slice(3).replace(/-/g, '+').replace(/_/g, '/')), (character) => character.charCodeAt(0));
     return parseScenario(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
@@ -56,7 +68,7 @@ export function saveScenario(scenario: Scenario): void { localStorage.setItem(ST
 /** Deterministic, non-cryptographic display identifier; complete inputs remain in JSON. */
 export function scenarioId(scenario: Scenario): string {
   let hash = 2166136261;
-  for (const character of scenarioFingerprint(scenario)) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619) >>> 0;
+  for (const byte of new TextEncoder().encode(scenarioFingerprint(scenario))) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
   return hash.toString(16).padStart(8, '0');
 }
 
@@ -72,14 +84,16 @@ export function exportResultsCsv(scenario: Scenario, result: Result): string {
   const rows: (string | number)[][] = [columns];
   const id = scenarioId(scenario);
   const prefix = [id, scenario.modelVersion, scenario.dataVersion, scenario.geographyMode, scenario.turnout];
+  const turnoutScale = scenario.turnout / baselineTurnout;
   for (const list of scenario.lists) {
     const support = list.memberEntityIds.reduce((sum, member) => sum + scenario.entities.find((entity) => entity.id === member)!.supportUnits, 0) / 1e6;
     const shared = [list.id, list.memberEntityIds.join(' + '), list.committeeType, support, String(result.eligibility[list.id].eligible), result.eligibility[list.id].thresholdPct];
     const bounds = result.nationalListSeatBounds[list.id];
-    rows.push([...prefix, 'national', ...shared, bounds.lower, bounds.upper, '', result.status]);
+    const nationalVotes = result.districtAllocations.reduce((sum, district) => sum + (district.votesByList[list.id] ?? 0), 0) * turnoutScale;
+    rows.push([...prefix, 'national', ...shared, bounds.lower, bounds.upper, nationalVotes, result.status]);
     for (const district of result.districtAllocations) {
       const seats = district.seatBounds[list.id] ?? { lower: 0, upper: 0 };
-      rows.push([...prefix, district.districtId, ...shared, seats.lower, seats.upper, district.votesByList[list.id] ?? 0, district.status]);
+      rows.push([...prefix, district.districtId, ...shared, seats.lower, seats.upper, (district.votesByList[list.id] ?? 0) * turnoutScale, district.status]);
     }
   }
   return '\uFEFF' + rows.map((row) => row.map(csvCell).join(',')).join('\r\n');

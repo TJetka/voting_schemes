@@ -1,5 +1,6 @@
 import { allianceBounds, allianceIdsForRule, type AllianceRule } from './alliances';
 import { evaluateScenario } from './engine';
+import { determineEligibility } from './eligibility';
 import { redistributeSupport } from './support';
 import type { Result, Scenario, SeatBounds } from './types';
 
@@ -20,6 +21,7 @@ export interface HeatOutput { cells: HeatCell[]; xValues: number[]; yValues: num
 
 /** Integer grid construction never accumulates floating point steps. Units are 1e-6 percentage point. */
 export function axisValues(axis: Axis, cap = 2001): number[] {
+  if (!Number.isSafeInteger(cap) || cap < 1 || typeof axis.targetId !== 'string' || !axis.targetId || typeof axis.donorId !== 'string' || !axis.donorId) throw new Error('Wybierz cel i dawcę badania.');
   if (![axis.min, axis.max, axis.step].every(Number.isSafeInteger) || axis.min < 0 || axis.max > 100_000_000 || axis.max < axis.min || axis.step < 1) throw new Error('Nieprawidłowy zakres lub rozdzielczość badania.');
   if (axis.targetId === axis.donorId) throw new Error('Cel i dawca muszą być różni.');
   const count = Math.floor((axis.max - axis.min) / axis.step) + 1;
@@ -36,6 +38,7 @@ export function sweepValues(scenario: Scenario, axis: Axis): { values: number[];
   const target = scenario.entities.find((entity) => entity.id === axis.targetId);
   const donor = scenario.entities.find((entity) => entity.id === axis.donorId);
   if (!target?.active || !donor?.active || target.locked || donor.locked) throw new Error('Wybierz aktywny, odblokowany cel i dawcę.');
+  if (axis.max > target.supportUnits + donor.supportUnits) throw new Error('Zakres przekracza łączne poparcie celu i dawcy. Zmniejsz maksimum.');
   const thresholds = new Set<number>();
   for (const list of scenario.lists) {
     const direction = Number(list.memberEntityIds.includes(target.id)) - Number(list.memberEntityIds.includes(donor.id));
@@ -44,7 +47,10 @@ export function sweepValues(scenario: Scenario, axis: Axis): { values: number[];
     for (const threshold of list.committeeType === 'ordinary' ? [3_000_000, 5_000_000] : [5_000_000, 8_000_000]) {
       const crossing = target.supportUnits + (threshold - support) / direction;
       if (crossing < axis.min || crossing > axis.max) continue;
-      thresholds.add(crossing);
+      const sample = scenarioAt(scenario, axis, crossing);
+      const inputs = sample.lists.map((entry) => ({ ...entry, votes: entry.memberEntityIds.reduce((sum, id) => sum + sample.entities.find((entity) => entity.id === id)!.supportUnits, 0) }));
+      // Probe all legal candidate crossings, but label only the threshold regime that actually applies.
+      if (determineEligibility(inputs).eligibility[list.id].thresholdPct * 1_000_000 === threshold) thresholds.add(crossing);
       for (const value of [crossing - 1, crossing, crossing + 1]) if (value >= axis.min && value <= axis.max) values.add(value);
     }
   }
@@ -82,8 +88,10 @@ export function validateHeatAxes(x: Axis, y: Axis, refinement = false): { xValue
 /** Each cell is reconstructed from the frozen scenario; impossible support stays explicitly invalid. */
 export function heatCell(scenario: Scenario, xAxis: Axis, yAxis: Axis, x: number, y: number, rule: AllianceRule): HeatCell {
   try {
+    if (new Set([xAxis.targetId, xAxis.donorId, yAxis.targetId, yAxis.donorId]).size !== 4) throw new Error('Osie muszą mieć rozłączne cele i pule dawców.');
     const sample = scenarioAt(scenarioAt(scenario, xAxis, x), yAxis, y);
     const result = evaluateScenario(sample);
+    if (result.status === 'unallocatable') throw new Error('Nie można przydzielić mandatów: brak dodatnich głosów na uprawnione listy.');
     return { x, y, bounds: allianceBounds(result, allianceIdsForRule(sample, rule)) };
   } catch (error) { return { x, y, bounds: null, error: error instanceof Error ? error.message : 'Nieprawidłowe poparcie' }; }
 }
