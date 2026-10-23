@@ -4,10 +4,10 @@ test('skip-link focus and document fragments preserve the scenario without state
   page,
 }) => {
   await page.goto('./#workspace');
-  await expect(page.getByTestId('camp-L')).toHaveText('228');
+  await expect(page.getByTestId('camp-L')).toHaveText('226');
   await expect(page.getByRole('alert')).toHaveCount(0);
   await page.getByRole('button', { name: 'Połącz L', exact: true }).click();
-  await expect(page.getByTestId('camp-L')).toHaveText('253');
+  await expect(page.getByTestId('camp-L')).toHaveText('247');
   const skip = page.getByRole('link', { name: 'Przejdź do narzędzi' });
   await skip.focus();
   await page.keyboard.press('Enter');
@@ -17,10 +17,10 @@ test('skip-link focus and document fragments preserve the scenario without state
     window.location.hash = '#workspace';
   });
   await expect(page).toHaveURL(/#workspace$/);
-  await expect(page.getByTestId('camp-L')).toHaveText('253');
+  await expect(page.getByTestId('camp-L')).toHaveText('247');
   await expect(page.getByRole('alert')).toHaveCount(0);
   await page.reload();
-  await expect(page.getByTestId('camp-L')).toHaveText('253');
+  await expect(page.getByTestId('camp-L')).toHaveText('247');
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
@@ -30,5 +30,5 @@ test('a malformed shared-state hash still displays an actionable error', async (
     window.location.hash = '#s=!';
   });
   await expect(page.getByRole('alert')).toContainText('Nieprawidłowy link scenariusza');
-  await expect(page.getByTestId('camp-L')).toHaveText('228');
+  await expect(page.getByTestId('camp-L')).toHaveText('226');
 });

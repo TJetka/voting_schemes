@@ -77,11 +77,27 @@ export default function Methodology({ scenario }: { scenario: Scenario }) {
       </p>
       <h3>Geografia i kalibracja</h3>
       <p>
-        Profile geograficzne pochodzą z wyników komitetów w 2023 r. Do profilu dodajemy 1% składnika
-        jednorodnego, po czym iteracyjnie dopasowujemy sumy okręgów i dokładne udziały krajowe (IPF,
-        maksymalny błąd 10⁻¹², limit 10 000 iteracji). To regularizacja modelu, nie zmierzona
-        migracja wyborców. Wspólna lista sumuje już skalibrowane głosy; samo łączenie nie powoduje
-        nowej kalibracji.
+        Domyślna geografia grup opiera się na wynikach z 2023 r.: L = KO + Nowa Lewica, R = PiS +
+        Konfederacja, C = Trzecia Droga. Najpierw dopasowujemy te trzy profile i resztę do sum
+        głosów w okręgach oraz krajowego poparcia grup. Następnie dopasowujemy podmioty wewnątrz
+        każdej grupy do ich udziałów krajowych, zachowując ustaloną liczbę głosów grupy w każdym
+        okręgu. Przesunięcie poparcia wewnątrz L, R albo C nie zmienia regionalnych sum pozostałych
+        elektoratów.
+      </p>
+      <p>
+        Drugi etap korzysta z udziału historycznego komitetu we własnej grupie. Każdy profil zawiera
+        1% składnika jednorodnego; to regularizacja modelu, nie zmierzona migracja wyborców.
+        Dopasowanie iteracyjne (IPF) zachowuje udziały krajowe i sumy okręgów z tolerancją 10⁻¹².
+        Średnie krajowe ważymy liczbą ważnych głosów w okręgu, nie liczbą okręgów. Samo łączenie
+        list sumuje już skalibrowane głosy, bez nowego dopasowania.
+      </p>
+      <p>
+        Domyślnie KO korzysta z profilu KO; NL, Razem i PPS — z NL; PiS i Rozwój Plus — z PiS;
+        Konfederacja i KKP — z Konfederacji. PSL i Polska 2050 dzielą profil Trzeciej Drogi: wyniki
+        tej wspólnej listy z 2023 r. nie identyfikują osobnych elektoratów tych partii. Wspólny
+        profil nie jest dowodem identycznych rzeczywistych wyborców. W panelu geografii można
+        porównać poprzedni model indywidualnych profili i jednakowe poparcie w każdym okręgu.
+        Zapisane scenariusze zachowują wybraną geografię.
       </p>
       <p>
         Przy frekwencji {percent(scenario.turnout * 100)} wszystkie okręgi skalowane są

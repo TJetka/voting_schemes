@@ -8,8 +8,8 @@ test.beforeEach(async ({ page }) => {
 test('fresh preset exposes source, inactive unmeasured PPS, locked residual and official replay', async ({
   page,
 }) => {
-  await expect(page.getByTestId('camp-L')).toHaveText('228');
-  await expect(page.getByTestId('camp-R')).toHaveText('232');
+  await expect(page.getByTestId('camp-L')).toHaveText('226');
+  await expect(page.getByTestId('camp-R')).toHaveText('234');
   await expect(page.getByText('Pollster · 19–21.10.2026 · n = 1014')).toBeVisible();
   await expect(
     page.getByLabel('Poparcie Polska Partia Socjalistyczna', { exact: true }),
@@ -24,7 +24,7 @@ test('fresh preset exposes source, inactive unmeasured PPS, locked residual and 
   await expect(page.getByRole('dialog')).toContainText('157');
 });
 
-test('keyboard pooling shows committee form, 59 seats and net camp gain; undo restores partition', async ({
+test('keyboard pooling shows committee form, 58 seats and net camp gain; undo restores partition', async ({
   page,
 }) => {
   const nl = page.getByRole('checkbox', { name: 'Zaznacz Nowa Lewica do połączenia' });
@@ -36,13 +36,13 @@ test('keyboard pooling shows committee form, 59 seats and net camp gain; undo re
   await page.getByRole('button', { name: 'Połącz zaznaczone (2)' }).focus();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('list-nl+razem').getByRole('combobox')).toHaveValue('coalition');
-  await expect(page.getByTestId('seats-nl+razem')).toHaveText('59');
-  await expect(page.getByTestId('camp-L')).toHaveText('244');
-  await expect(page.getByText('NL + Razem: 33 → 59 mandatów (+26)')).toBeVisible();
-  await expect(page.getByText(/Inne listy grupy L: -10. Cała grupa L: \+16/)).toBeVisible();
+  await expect(page.getByTestId('seats-nl+razem')).toHaveText('58');
+  await expect(page.getByTestId('camp-L')).toHaveText('241');
+  await expect(page.getByText('NL + Razem: 33 → 58 mandatów (+25)')).toBeVisible();
+  await expect(page.getByText(/Inne listy grupy L: -10. Cała grupa L: \+15/)).toBeVisible();
   await page.getByRole('button', { name: 'Cofnij zmianę', exact: true }).click();
   await expect(page.getByTestId('seats-nl')).toHaveText('27');
-  await expect(page.getByTestId('camp-L')).toHaveText('228');
+  await expect(page.getByTestId('camp-L')).toHaveText('226');
 });
 
 test('L and R cannot merge even with a centre bridge', async ({ page }) => {
@@ -59,7 +59,7 @@ test('L and R cannot merge even with a centre bridge', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('centre 8% versus 5% changes eligibility and exposes two alternative majorities', async ({
+test('centre 8% versus 5% changes eligibility and exposes alternative alliance totals', async ({
   page,
 }) => {
   for (const name of ['Polskie Stronnictwo Ludowe', 'Polska 2050']) {
@@ -71,8 +71,8 @@ test('centre 8% versus 5% changes eligibility and exposes two alternative majori
   await expect(page.getByTestId('seats-pl2050+psl')).toHaveText('0');
   await list.getByRole('combobox').selectOption('ordinary');
   await expect(page.getByTestId('seats-pl2050+psl')).toHaveText('6');
-  await expect(page.getByTestId('left-centre')).toHaveText('231');
-  await expect(page.getByTestId('right-centre')).toHaveText('235');
+  await expect(page.getByTestId('left-centre')).toHaveText('229');
+  await expect(page.getByTestId('right-centre')).toHaveText('237');
   await list.getByRole('checkbox', { name: /Sojusz:/ }).check();
   await expect(page.getByTestId('alliance-seats')).toHaveText('6');
 });
@@ -85,8 +85,8 @@ test('turnout changes headcounts while seats remain fixed; explicit donors conse
   await page.getByLabel('Frekwencja', { exact: true }).focus();
   await page.keyboard.press('Home');
   await expect(page.getByTestId('expected-ballots')).not.toHaveText(originalBallots!);
-  await expect(page.getByTestId('camp-L')).toHaveText('228');
-  await expect(page.getByTestId('camp-R')).toHaveText('232');
+  await expect(page.getByTestId('camp-L')).toHaveText('226');
+  await expect(page.getByTestId('camp-R')).toHaveText('234');
   await page.getByLabel('Zmianę finansują').selectOption('selected');
   await page.getByLabel('Wybrany dawca').selectOption('nl');
   await page.getByLabel('Poparcie Partia Razem', { exact: true }).fill('6');
@@ -104,7 +104,7 @@ test('JSON export/import and shared URL reproduce edited scenario in clean brows
   browser,
 }) => {
   await page.getByRole('button', { name: 'Połącz L', exact: true }).click();
-  await expect(page.getByTestId('camp-L')).toHaveText('253');
+  await expect(page.getByTestId('camp-L')).toHaveText('247');
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Eksport JSON' }).click();
   const file = await download;
@@ -112,11 +112,11 @@ test('JSON export/import and shared URL reproduce edited scenario in clean brows
   const clean = await browser.newContext();
   const imported = await clean.newPage();
   await imported.goto(page.url());
-  await expect(imported.getByTestId('camp-L')).toHaveText('228');
+  await expect(imported.getByTestId('camp-L')).toHaveText('226');
   await imported.getByRole('button', { name: 'Import JSON' }).click();
   await imported.getByLabel('Treść scenariusza').fill(exported);
   await imported.getByRole('button', { name: 'Zweryfikuj i wczytaj' }).click();
-  await expect(imported.getByTestId('camp-L')).toHaveText('253');
+  await expect(imported.getByTestId('camp-L')).toHaveText('247');
   await page.getByRole('button', { name: 'Udostępnij ↗' }).click();
   const share = await page.getByLabel('Link do scenariusza').inputValue();
   expect(new URL(share).pathname).toBe('/voting_schemes/');
@@ -124,9 +124,9 @@ test('JSON export/import and shared URL reproduce edited scenario in clean brows
   const sharedContext = await browser.newContext();
   const shared = await sharedContext.newPage();
   await shared.goto(share);
-  await expect(shared.getByTestId('camp-L')).toHaveText('253');
+  await expect(shared.getByTestId('camp-L')).toHaveText('247');
   await shared.reload();
-  await expect(shared.getByTestId('camp-L')).toHaveText('253');
+  await expect(shared.getByTestId('camp-L')).toHaveText('247');
   await clean.close();
   await sharedContext.close();
 });

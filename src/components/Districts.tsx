@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { baselineTurnout, historicalData } from '../model/data';
+import { calibratedVotes } from '../model/engine';
+import { REGIONAL_FAMILIES, summarizeRegionalSupport } from '../model/regional';
 import type { DistrictAllocation, Result, Scenario } from '../model/types';
 import { boundsText, listShort, number, percent, signed } from './display';
+import RegionalProfiles, { RegionalDistrictProfile, RegionalShareCell } from './RegionalProfiles';
 
 interface Props {
   scenario: Scenario;
@@ -30,6 +33,11 @@ export default function Districts({
   onSelect,
 }: Props) {
   const [query, setQuery] = useState('');
+  const regional = useMemo(
+    () => summarizeRegionalSupport(scenario, calibratedVotes(scenario)),
+    [scenario],
+  );
+  const regionalByDistrict = new Map(regional.districts.map((item) => [item.districtId, item]));
   const scale = scenario.turnout / baselineTurnout;
   const district = historicalData.districts.find((item) => item.id === selectedDistrict);
   const allocation = result.districtAllocations.find(
@@ -67,6 +75,7 @@ export default function Districts({
           onChange={(event) => setQuery(event.target.value)}
         />
       </div>
+      <RegionalProfiles scenario={scenario} summary={regional} />
       {district && allocation && baseAllocation && (
         <section
           className="district-inspector"
@@ -85,6 +94,10 @@ export default function Districts({
             </button>
           </header>
           <p className="muted">{district.boundaryDescription}</p>
+          <RegionalDistrictProfile
+            scenario={scenario}
+            district={regionalByDistrict.get(district.id)!}
+          />
           <div className="table-scroll">
             <table>
               <thead>
@@ -232,6 +245,9 @@ export default function Districts({
           <thead>
             <tr>
               <th>Okręg / siedziba OKW</th>
+              {REGIONAL_FAMILIES.map((family) => (
+                <th key={family}>{family}: 2023 → scenariusz</th>
+              ))}
               <th>Mandaty</th>
               <th>Uprawnieni</th>
               <th>Frekw. 2023</th>
@@ -274,6 +290,18 @@ export default function Districts({
                         {item.id}. {item.commissionSeat}
                       </button>
                     </td>
+                    {REGIONAL_FAMILIES.map((family) => {
+                      const profile = regionalByDistrict.get(item.id)!;
+                      return (
+                        <td key={family}>
+                          <RegionalShareCell
+                            family={family}
+                            historical={profile.historicalShares[family]}
+                            projected={profile.projectedShares[family]}
+                          />
+                        </td>
+                      );
+                    })}
                     <td>{item.seats}</td>
                     <td>{number(item.eligible2023)}</td>
                     <td>{percent((item.ballots2023 / item.eligible2023) * 100)}</td>

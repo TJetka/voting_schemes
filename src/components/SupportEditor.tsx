@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { MODEL_VERSION } from '../model/constants';
 import { baselineTurnout, historicalData, maxTurnoutSliderPct } from '../model/data';
 import {
   defaultDonors,
@@ -305,6 +306,21 @@ export default function SupportEditor({ scenario, onChange, onError }: Props) {
         </span>
       </div>
       <div className="config-panel">
+        {(scenario.modelVersion === '1.0.0' || scenario.geographyMode === 'historical') && (
+          <div className="geography-upgrade">
+            <p className="small">Zapisany scenariusz zachowuje poprzednią geografię.</p>
+            <button
+              onClick={() =>
+                onChange(
+                  { ...scenario, modelVersion: MODEL_VERSION, geographyMode: 'family' },
+                  'Zastosowano geografię grup z 2023 r. Udziały krajowe pozostały bez zmian.',
+                )
+              }
+            >
+              Zastosuj geografię grup 2023
+            </button>
+          </div>
+        )}
         <details>
           <summary>Geografia i frekwencja</summary>
           <label className="field">
@@ -314,14 +330,23 @@ export default function SupportEditor({ scenario, onChange, onError }: Props) {
               onChange={(event) =>
                 onChange({
                   ...scenario,
+                  modelVersion: MODEL_VERSION,
                   geographyMode: event.target.value as Scenario['geographyMode'],
                 })
               }
             >
-              <option value="historical">Profile okręgowe 2023 + kalibracja</option>
+              <option value="family">Grupy L / R / C z 2023 + kalibracja w grupach</option>
+              <option value="historical">Profile poszczególnych komitetów (poprzedni model)</option>
               <option value="uniform">Jednakowe poparcie w każdym okręgu</option>
             </select>
           </label>
+          <p className="small muted">
+            {scenario.geographyMode === 'family'
+              ? 'Zachowujemy regionalne różnice elektoratów L, R i C z 2023 r. Transfer wewnątrz grupy nie zmienia jej sumy w żadnym okręgu. Udział krajowy każdego podmiotu pozostaje zgodny ze scenariuszem.'
+              : scenario.geographyMode === 'historical'
+                ? 'Każdy podmiot dziedziczy profil wybranego komitetu z 2023 r. Transfer wewnątrz grupy może zmienić także regionalny rozkład pozostałych grup.'
+                : 'Wariant kontrolny bez różnic regionalnych: udział każdej partii jest jednakowy w każdym okręgu.'}
+          </p>
           <label className="field">
             Frekwencja: {percent(scenario.turnout * 100)}
             <input
