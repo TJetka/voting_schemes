@@ -33,7 +33,7 @@ test('2D grid exposes resolution and rejects overlapping donors', async ({ page 
   await page.getByRole('button', { name: 'Oblicz mapę 2D' }).click();
   await expect(page.getByText('21 × 21 komórek')).toBeVisible({ timeout: 20_000 });
   const y = page.getByRole('group', { name: 'Oś Y mapy' });
-  await y.getByLabel('Dawca', { exact: true }).selectOption('nl');
+  await y.getByRole('combobox', { name: 'Dawca', exact: true }).selectOption('nl');
   await page.getByRole('button', { name: 'Oblicz mapę 2D' }).click();
   await expect(page.getByRole('alert')).toContainText('rozłączne');
 });

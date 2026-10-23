@@ -14,7 +14,7 @@ function applyPartition(scenario: Scenario, lists: ElectoralList[]): Scenario {
   return { ...scenario, lists: lists.sort((a, b) => a.id.localeCompare(b.id)), allianceSelection: scenario.allianceSelection.filter((id) => retained.has(id)), notes: [...scenario.notes, 'Zmieniono układ list. Sprawdź ponownie wybór sojuszu parlamentarnego.'].slice(-50) };
 }
 
-/** Move selected members to a new common list; untouched fragments retain legal treatment. */
+/** Create a common list (8% by default). To edit a destination's membership, pass its existing type; unchanged lists and leftover fragments retain their type. */
 export function mergeEntities(scenario: Scenario, memberIds: string[], committeeType?: CommitteeType): Scenario {
   if (memberIds.length < 2 || new Set(memberIds).size !== memberIds.length) throw new Error('Wybierz co najmniej dwa różne podmioty.');
   if (memberIds.some((id) => !scenario.entities.some((entity) => entity.id === id && entity.active))) throw new Error('Można łączyć tylko aktywne podmioty.');
@@ -77,13 +77,27 @@ export function partitionLists(partition: string[][], policy: CommitteeType): El
   return partition.map((members) => ({ id: canonicalListId(members), memberEntityIds: [...members].sort(), committeeType: members.length > 1 ? policy : 'ordinary', minorityExempt: false }));
 }
 
-/** Stable identity for reproducibility and stale-work detection, including edited labels. */
+/** Stable identity independent of object-key or set-member order; note order and text remain meaningful. */
 export function scenarioFingerprint(scenario: Scenario): string {
   const canonical = {
-    ...scenario,
-    entities: [...scenario.entities].sort((a, b) => a.id.localeCompare(b.id)),
-    lists: [...scenario.lists].map((list) => ({ ...list, memberEntityIds: [...list.memberEntityIds].sort() })).sort((a, b) => a.id.localeCompare(b.id)),
-    allianceSelection: [...scenario.allianceSelection].sort(),
+    schemaVersion: scenario.schemaVersion, modelVersion: scenario.modelVersion, dataVersion: scenario.dataVersion,
+    pollId: scenario.pollId, name: scenario.name,
+    entities: [...scenario.entities].sort((a, b) => a.id.localeCompare(b.id)).map((entity) => ({
+      id: entity.id, label: entity.label, family: entity.family, active: entity.active,
+      supportUnits: entity.supportUnits, publishedPollSharePct: entity.publishedPollSharePct,
+      supportStatus: entity.supportStatus, proxyId: entity.proxyId, locked: entity.locked,
+    })),
+    lists: [...scenario.lists].sort((a, b) => a.id.localeCompare(b.id)).map((list) => ({
+      id: list.id, memberEntityIds: [...list.memberEntityIds].sort(), committeeType: list.committeeType, minorityExempt: list.minorityExempt,
+    })),
+    residual: {
+      supportUnits: scenario.residual.supportUnits,
+      components: [...scenario.residual.components].sort((a, b) => a.label.localeCompare(b.label)).map((component) => ({ label: component.label, publishedSharePct: component.publishedSharePct })),
+      eligibilityAssumption: scenario.residual.eligibilityAssumption,
+    },
+    turnout: scenario.turnout, geographyMode: scenario.geographyMode,
+    allianceSelection: [...scenario.allianceSelection].sort(), notes: [...scenario.notes],
+    familyLabels: { L: scenario.familyLabels.L, R: scenario.familyLabels.R, C: scenario.familyLabels.C },
   };
   return JSON.stringify(canonical);
 }

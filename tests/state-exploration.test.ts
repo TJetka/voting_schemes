@@ -7,6 +7,8 @@ import { exportResultsCsv, parseScenario, scenarioFromHash, scenarioId, scenario
 import { createDefaultScenario } from '../src/model/presets';
 import { axisValues, heatCell, scenarioAt, summarizePoint, sweepValues, transitionBetween, validateHeatAxes, type Axis } from '../src/model/sensitivity';
 import { isCurrentResponse } from '../src/workers/protocol';
+import { validateScenario } from '../src/model/validation';
+import type { Scenario } from '../src/model/types';
 
 const defaultAxis: Axis = { targetId: 'razem', donorId: 'nl', min: 4_900_000, max: 5_100_000, step: 10_000 };
 const yAxis: Axis = { targetId: 'rozwoj', donorId: 'pis', min: 4_900_000, max: 5_100_000, step: 10_000 };
@@ -138,6 +140,52 @@ describe('two-dimensional experiments', () => {
 });
 
 describe('reproducible scenario state', () => {
+  it('ignores object-key and unordered membership order but preserves meaningful note text/order', () => {
+    const scenario = mergeEntities(createDefaultScenario(), ['nl', 'razem'], 'ordinary');
+    scenario.allianceSelection = ['ko', 'nl+razem'];
+    scenario.notes = ['{"b":2,"a":1}', 'Założenie drugie'];
+    function reverseKeys(value: unknown): unknown {
+      if (Array.isArray(value)) return value.map(reverseKeys);
+      if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).reverse().map(([key, child]) => [key, reverseKeys(child)]));
+      return value;
+    }
+    const reordered = reverseKeys(scenario) as Scenario;
+    reordered.entities.reverse();
+    reordered.lists.reverse();
+    for (const list of reordered.lists) list.memberEntityIds.reverse();
+    reordered.residual.components.reverse();
+    reordered.allianceSelection.reverse();
+    expect(scenarioFingerprint(reordered)).toBe(scenarioFingerprint(scenario));
+    expect(scenarioId(reordered)).toBe(scenarioId(scenario));
+    const imported = parseScenario(JSON.stringify(reordered));
+    expect(imported.residual).toEqual(scenario.residual);
+    expect(imported.notes).toEqual(scenario.notes);
+    expect(scenarioFingerprint(imported)).toBe(scenarioFingerprint(scenario));
+    expect(evaluateScenario(imported).nationalListSeats).toEqual(evaluateScenario(scenario).nationalListSeats);
+    expect(scenarioFingerprint({ ...scenario, notes: [...scenario.notes].reverse() })).not.toBe(scenarioFingerprint(scenario));
+    expect(scenarioFingerprint({ ...scenario, notes: ['{"a":1,"b":2}', 'Założenie drugie'] })).not.toBe(scenarioFingerprint(scenario));
+  });
+
+  it('rejects unrecognized nested fields and returns independent known-field records', () => {
+    const scenario = createDefaultScenario();
+    const malformed = [
+      { ...scenario, entities: scenario.entities.map((entity, index) => index === 0 ? { ...entity, extraVotes: 100 } : entity) },
+      { ...scenario, lists: scenario.lists.map((list, index) => index === 0 ? { ...list, predictedSeats: 460 } : list) },
+      { ...scenario, residual: { ...scenario.residual, extra: 'unexpected' } },
+      { ...scenario, residual: { ...scenario.residual, components: scenario.residual.components.map((component) => ({ ...component, editable: true })) } },
+      { ...scenario, familyLabels: { ...scenario.familyLabels, X: 'Unknown' } },
+    ];
+    for (const input of malformed) expect(() => parseScenario(JSON.stringify(input))).toThrow(/nieznane pole/);
+    const normalized = validateScenario(scenario);
+    expect(normalized).toEqual(scenario);
+    normalized.entities[0].label = 'Edited';
+    normalized.lists[0].memberEntityIds.push('unexpected');
+    normalized.residual.components[0].label = 'Changed';
+    expect(scenario.entities[0].label).toBe('Koalicja Obywatelska');
+    expect(scenario.lists[0].memberEntityIds).toEqual(['ko']);
+    expect(scenario.residual.components[0].label).toBe('Unia Centrum');
+  });
+
   it('JSON and URL preserve all inputs, Unicode, notes, IDs and results', () => {
     const scenario = mergeEntities(createDefaultScenario(), ['nl', 'razem'], 'ordinary');
     scenario.name = 'Zażółć gęślą jaźń · 🗳️';
