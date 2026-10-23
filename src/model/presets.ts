@@ -83,7 +83,7 @@ export function createDefaultScenario(): Scenario {
       eligibilityAssumption: 'no-seats',
     },
     turnout: baselineTurnout,
-    geographyMode: 'historical',
+    geographyMode: 'family',
     allianceSelection: [],
     notes: [],
     familyLabels: {

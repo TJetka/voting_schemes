@@ -54,3 +54,16 @@ Verified on 23 October 2026:
 The source repository is https://github.com/TJetka/voting_schemes. The workspace protects `.git`, so this session used Git metadata at `/tmp/coalition-git/.git` with this workspace as its work tree. A normal clone of the pushed repository has standard Git metadata.
 
 The initial deployment was blocked because Pages was disabled. The repository owner enabled GitHub Actions as the Pages source; GitHub now reports `has_pages: true`. A subsequent runner stalled during the browser download, so the delivery workflow uses Playwright’s smaller headless-only Chromium download and a five-minute installation timeout. The final workflow successfully published the validated build to https://tjetka.github.io/voting_schemes/. HTTP 200 and the live Polish interface were verified; the public Worker enumerates all 2,385 default groupings correctly. Final automated validation: 59 TypeScript unit tests, 10 Python importer tests, 13 Playwright journeys, strict type checking, formatting and production build all passed.
+
+
+## Adjustment: regional electorates (model 1.1.0)
+
+User-requested scope: apply 2023 regional heterogeneity within left/liberal, right and centre electorates while preserving national poll targets.
+
+1. Add two-stage IPF: fixed historical camp geography, then conditional party geography inside the fitted camp electorate. Keep the previous individual fit and uniform comparison.
+2. Preserve old scenario results; version the new default as 1.1.0 and make adoption explicit for existing 1.0.0 state.
+3. Show weighted national calibration checks and district 2023/scenario profiles; explain the shared-proxy limits.
+4. Verify national/district margins, within-camp transfer invariance, empty/tiny camps, pooling, turnout, legacy fixtures and official replay; update browser journeys for the intentional new default.
+5. Commit, push through the existing validation/deployment workflow, and verify the public application.
+
+The two-stage engine, version compatibility, district profiles, methodology, and three new browser journeys are implemented. The 24 focused geography/summary checks and original 59 unit tests pass (83 total); all 10 importer tests and Ruff checks pass. Type checking and the production build pass. Native Chrome verified old saved-state retention, explicit adoption (228 → 226 L seats), and the Warsaw regional profile. The 16 automated browser journeys and public deployment remain to be checked by the existing delivery workflow. No source data, dependencies or CI/CD configuration changed.

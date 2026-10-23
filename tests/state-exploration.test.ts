@@ -410,7 +410,7 @@ describe('reproducible scenario state', () => {
       result.districtAllocations.reduce((sum, district) => sum + district.votesByList.ko, 0) * 0.75,
       7,
     );
-    expect(Number(national[12])).toBe(195);
+    expect(Number(national[12])).toBe(193);
     expect(national[0]).toBe(scenarioId(scenario));
     expect(national[1]).toBe(scenario.modelVersion);
   });

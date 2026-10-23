@@ -24,9 +24,9 @@ Python 3.12 and uv are used only for reproducible official-data import and its t
 ```sh
 uv sync --locked
 uv run python scripts/import_pkw.py --help
-uv run pytest -qtests/python
-uv run ruff check scriptstests/python
-uv run ruff format --check scriptstests/python
+uv run pytest -q tests/python
+uv run ruff check scripts tests/python
+uv run ruff format --check scripts tests/python
 ```
 
 Browser acceptance checks use Playwright:
@@ -53,7 +53,11 @@ Raw election sources are public aggregate results and are intentionally versione
 
 ## Model and reproducibility
 
-Support is stored in exact integer units (one million units per percentage point); a locked 0.51% residual remains in the denominator. Support edits use exact proportional donor arithmetic and deterministic largest remainders. Geographic fitting preserves both national targets and district valid-vote totals. Atomic geography is fitted once before lists are pooled. Proportional turnout changes headcounts only.
+Support is stored in exact integer units (one million units per percentage point); a locked 0.51% residual remains in the denominator. Support edits use exact proportional donor arithmetic and deterministic largest remainders. The default model (1.1.0) first fits the 2023 regional electorates **L = KO + NL, R = PiS + Konfederacja, C = Trzecia Droga** to current camp totals. It then fits party profiles conditional on each camp's regional electorate. Both stages preserve district totals and each party's exact national support; the national average is weighted by valid votes, not by the number of districts. Redistributing support within a camp leaves its regional total and the other camps' votes unchanged. Atomic geography is fitted once before lists are pooled. Proportional turnout changes headcounts only.
+
+The geography selector offers the new camp model, the original individual-profile fit, and uniform district support. District profiles compare 2023 shares with the current scenario and show national calibration checks. Shared 2023 proxies do not invent separate regional evidence for parties that ran together (notably PSL and Polska 2050). Existing 1.0.0 links and saved scenarios retain their previous calculation until the user explicitly adopts the new mode. The dated poll and immutable historical source files are unchanged.
+
+With the default poll and separate lists, the new model gives L 226 / R 234 / C 0; the original fit remains L 228 / R 232 / C 0. These are model outputs, not measured results. The exact method and invariants are in PRD section 6.6.
 
 Eligibility includes 5%/8% thresholds, the statutory fallback and explicit minority exemption in historical replay. List-level d’Hondt ties and numerical boundary ambiguities are visible rather than resolved by entity order. Historical results are validated against independently published official district seats. Scenario exports preserve model/data versions; JSON, URL and local state are validated before use.
 

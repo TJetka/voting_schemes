@@ -1,8 +1,8 @@
 # PRD Polish Sejm Coalition and Threshold Simulator
 
-Version: 1.0  
+Version: 1.1
 Prepared: 23 October 2026  
-Status: Ready for implementation  
+Status: Implemented; family geography adjustment specified below
 Deliverable: A small static browser application deployed on GitHub Pages  
 Specification language: English  
 Application interface: Polish  
@@ -39,7 +39,7 @@ The AI agent implements the application. The application itself needs no languag
 | Political slots | Four left/liberal, four right, two centre |
 | Starting support | Dated Pollster snapshot from 19–21 October 2026 |
 | Unmeasured fourth left slot | PPS, inactive with zero separately allocated scenario support |
-| Geographic projection | 2023 committee profiles calibrated to exact national support targets |
+| Geographic projection | 2023 L/R/C electorates, then within-camp committee profiles, calibrated to exact national support targets (section 6.6) |
 | Merger behaviour | Perfect vote pooling, without voter loss or additional mobilisation |
 | New joint-list default | Formal coalition committee, 8%; explicit 5% alternative |
 | Majority target | At least 231 seats; a majority of the full chamber |
@@ -247,7 +247,7 @@ For later poll imports with undecided respondents, require an explicit conversio
 
 ## 6 From national support to district votes
 
-This section defines the projection completely. It is a transparent scenario model, not a district forecasting model.
+This section defines the projection completely. It is a transparent scenario model, not a district forecasting model. The user-requested adjustment in section 6.6 is the default from model 1.1.0; sections 6.2–6.3 also remain available as the original individual-profile comparison.
 
 ### 6.1 Notation
 
@@ -263,7 +263,7 @@ This section defines the projection completely. It is a transparent scenario mod
 - H_dq: actual 2023 votes in district d for historical committee q.
 - h_q = sum_d H_dq / N.
 
-### 6.2 Geographic seed
+### 6.2 Individual-profile geographic seed (retained comparison mode)
 
 Each entity selects the historical proxy in section 5. For that proxy q:
 
@@ -338,6 +338,39 @@ For the supplied data, the ceiling is approximately **85.8375467%**, with distri
 Never silently cap individual districts at 100%: that would change the user's proportional model. Zero turnout is an invalid/no-election input.
 
 Differential turnout is deferred. It would require an explicit model of whose participation changes.
+
+
+### 6.6 Regional electorates and within-camp heterogeneity (model 1.1.0)
+
+Requested adjustment: use 2023 regional voting baselines within the left/liberal, right and centre electorates while retaining every national poll share. The default geography mode is `family`; `historical` retains the original individual-profile fit and `uniform` remains the geography-free comparison.
+
+Define historical camp votes once, without weighting them by today's party mix:
+
+- L = 2023 KO + Nowa Lewica.
+- R = 2023 PiS + Konfederacja.
+- C = 2023 Trzecia Droga.
+
+These are analytical electorates, not observations of individual voter transfers. Other 2023 committees do not enter a named camp; all valid votes remain in district weights and national denominators. The scenario residual remains a separate column with a uniform seed, calibrated alongside camps.
+
+**Stage 1 — district camp totals.** Let `H_df` be historical camp votes, `H_f` their national sum and `s_f` the exact integer sum of current entity support in that camp. Seed with:
+
+    r_df = (H_df / V_d) / (H_f / N)
+    Y_df = w_d * s_f * (0.99 * r_df + 0.01)
+
+Fit district totals `w_d` and current national camp totals `s_f`, including the residual. Thus a camp's regional distribution depends on its national total, not on its internal party composition.
+
+**Stage 2 — entities within each camp.** Let `A_df` be stage 1's fitted district camp share in national valid-vote units. For entity i and its historical proxy q, use conditional historical geography:
+
+    r_di_given_f = (H_dq / H_df) / (H_q / H_f)
+    Z_di = A_df * (s_i / s_f) * (0.99 * r_di_given_f + 0.01)
+
+Within each camp, fit rows to `A_df` and columns to exact national party targets `s_i`. Skip an entirely zero-support camp; keep zero entity columns exactly zero. There are no zero historical L/R/C district denominators in the verified input. Parties with a shared proxy retain identical within-camp geographic shape: in particular the 2023 committee data cannot identify separate PSL and Polska 2050 regional electorates.
+
+Fit both stages column-then-row. Stage 1 uses tolerance `1e-12 / 16`, stage 2 `1e-12 / 8`; verify the combined matrix satisfies the original `1e-12` absolute normalized margin tolerance. The iteration limit applies separately to each fit, and diagnostics report total iterations and maximum margin error across stages and the final matrix.
+
+Required invariants: every party's valid-vote-weighted national share equals its scenario target (the published poll unless edited); every district retains its 2023 valid-vote total; moving support within a camp preserves that camp's total in every district and every other camp's atomic votes; merging lists only pools already fitted columns. Uniform turnout remains seat-invariant.
+
+Display national target versus reconstructed weighted shares, searchable 2023 versus scenario district camp profiles, and explicit proxy limitations. Arithmetic averages of district percentages are not national vote shares. Existing model 1.0.0 exports and links retain their original modes and results; adopting the new geography is explicit. New scenarios and exports use 1.1.0. The 1.0.0 model cannot declare the new `family` mode.
 
 ## 7 Grouping rules and majority accounting
 
@@ -810,7 +843,7 @@ Use one 20-seat district and the national percentages shown. All ordinary separa
 
 Also construct dedicated fixtures for fallback, minority exemption, exact quotient ties, the district-total tie-break and unresolved precinct-level ties.
 
-### 13.4 Model-specific regression fixtures
+### 13.4 Original individual-profile regression fixtures (`historical` mode)
 
 The following were calculated during specification preparation using the exact Pollster shares, section 6's geographic proxies, 0.01 regularization, column-then-row IPF and unchanged atomic votes after merging.
 
@@ -825,7 +858,7 @@ They are **outputs of this particular model**, not observed election results or 
 | All active L entities together, formal 8% | 253 | 207 | 0 |
 | All R entities together, formal 8% | 195 | 265 | 0 |
 
-The default individual seats are KO 195, NL 27, Razem 6, PiS 127, Konfederacja 57, KKP 35, Rozwój Plus 13, PSL 0 and Polska 2050 0.
+Under the original `historical` mode, individual seats are KO 195, NL 27, Razem 6, PiS 127, Konfederacja 57, KKP 35, Rozwój Plus 13, PSL 0 and Polska 2050 0.
 
 The fit converged in nine iterations with maximum normalized margin error below 3.5e-13. These fixtures have no cutoff ambiguity.
 

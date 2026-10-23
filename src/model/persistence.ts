@@ -23,6 +23,8 @@ const SCENARIO_KEYS = [
 export const LIMITATIONS = [
   'Model scenariuszowy, nie prognoza ani prawdopodobieństwo wyniku wyborów.',
   'Poparcie w okręgach jest przybliżeniem opartym na 2023 r.; część podmiotów dzieli profile historyczne.',
+  'Geografia grup dopasowuje najpierw elektoraty L/R/C, potem podmioty wewnątrz grup; krajowe udziały pozostają zgodne ze scenariuszem.',
+  'Wspólne listy z 2023 r. nie identyfikują osobnych regionalnych elektoratów PSL i Polski 2050 ani podmiotów dzielących inne profile.',
   'Zamrożono elektorat i podział 460 mandatów z 2023 r.; głosy zagraniczne są już w okręgu 19.',
   'Sondaż jest datowany; tryb badania i sposób traktowania niezdecydowanych nie zostały podane.',
   'Grupy L/R/C i wspólna lista wspierająca dany obóz są założeniami scenariusza.',

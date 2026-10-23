@@ -315,7 +315,7 @@ describe('d’Hondt and boundary uncertainty', () => {
 
 describe('geography, pooling and turnout', () => {
   it('fits both margins and preserves exact zero columns', () => {
-    const scenario = createDefaultScenario();
+    const scenario = { ...createDefaultScenario(), geographyMode: 'historical' as const };
     const fit = calibrate(scenario);
     expect(fit.iterations).toBe(9);
     expect(fit.maxError).toBeLessThan(3.5e-13);
@@ -454,7 +454,7 @@ describe('permitted partitions and political accounting', () => {
     [['ko', 'nl', 'razem'], 'coalition', { L: 253, R: 207, C: 0 }],
     [['pis', 'konf', 'kkp', 'rozwoj'], 'coalition', { L: 195, R: 265, C: 0 }],
   ] as const)('reproduces PRD projection %j under %s', (members, type, expected) => {
-    const baseline = createDefaultScenario();
+    const baseline = { ...createDefaultScenario(), geographyMode: 'historical' as const };
     const scenario = members.length ? mergeEntities(baseline, [...members], type) : baseline;
     const result = evaluateScenario(scenario);
     expect(result.status).toBe('resolved');
@@ -465,7 +465,7 @@ describe('permitted partitions and political accounting', () => {
   });
 
   it('reports merger gain separately from net camp gain and centre alternatives', () => {
-    const baseline = createDefaultScenario();
+    const baseline = { ...createDefaultScenario(), geographyMode: 'historical' as const };
     const result = evaluateScenario(baseline);
     expect(result.nationalListSeats).toEqual({
       ko: 195,

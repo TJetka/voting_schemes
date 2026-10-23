@@ -58,7 +58,7 @@ export function validateScenario(input: unknown): Scenario {
   );
   if (
     input.schemaVersion !== 1 ||
-    input.modelVersion !== MODEL_VERSION ||
+    (input.modelVersion !== MODEL_VERSION && input.modelVersion !== '1.0.0') ||
     input.dataVersion !== DATA_VERSION
   )
     fail('niezgodna wersja schematu, modelu lub danych.');
@@ -71,8 +71,14 @@ export function validateScenario(input: unknown): Scenario {
     input.turnout > maxTurnout
   )
     fail('frekwencja musi być dodatnia i nie przekraczać limitu modelu proporcjonalnego.');
-  if (input.geographyMode !== 'historical' && input.geographyMode !== 'uniform')
+  if (
+    input.geographyMode !== 'family' &&
+    input.geographyMode !== 'historical' &&
+    input.geographyMode !== 'uniform'
+  )
     fail('nieznany model geografii.');
+  if (input.modelVersion === '1.0.0' && input.geographyMode === 'family')
+    fail('geografia grup wymaga wersji modelu 1.1.0.');
   if (
     !record(input.familyLabels) ||
     !['L', 'R', 'C'].every((family) =>

@@ -1,6 +1,6 @@
 export type Family = 'L' | 'R' | 'C';
 export type CommitteeType = 'ordinary' | 'coalition';
-export type GeographyMode = 'historical' | 'uniform';
+export type GeographyMode = 'family' | 'historical' | 'uniform';
 export interface Entity {
   id: string;
   label: string;
