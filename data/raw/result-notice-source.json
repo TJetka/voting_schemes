@@ -1,0 +1,11 @@
+{
+  "sourceUrl": "https://eli.gov.pl/api/acts/DU/2023/2234/text/O/D20232234.pdf",
+  "retrievedFrom": "https://api.sejm.gov.pl/eli/acts/DU/2023/2234/text/O/D20232234.pdf",
+  "retrievalDate": "2026-10-23",
+  "sha256": "b3d99abcf2b40ac0343a29c97708936714f5ea9cb81d10655adb57f807d75c64",
+  "extractionCommand": "pdftotext -layout D20232234.pdf D20232234.pdftotext.txt",
+  "extractedTextSha256": "9ee152945acb6b2f7028af38d1cad6367efd34d61e9ec5d19da8fb765adb11ee",
+  "localPath": "data/raw/D20232234.pdftotext.txt.gz",
+  "localSha256": "82b8805be8560d461e645aaa9a4979012438f2b4892441829d310176da6dca6a",
+  "note": "Original eli.gov.pl PDF endpoint returned HTTP 500; retrieved the same official act through the Sejm API. Committed lossless gzip of the complete pdftotext -layout extraction; no election allocation algorithm generated the control seats."
+}

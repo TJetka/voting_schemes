@@ -1,0 +1,330 @@
+[
+  {
+    "id": 1,
+    "commissionSeat": "Legnica",
+    "seats": 12,
+    "eligible2023": 716400,
+    "ballots2023": 511832,
+    "validVotes2023": 501870
+  },
+  {
+    "id": 2,
+    "commissionSeat": "Wałbrzych",
+    "seats": 8,
+    "eligible2023": 476857,
+    "ballots2023": 329690,
+    "validVotes2023": 323360
+  },
+  {
+    "id": 3,
+    "commissionSeat": "Wrocław",
+    "seats": 14,
+    "eligible2023": 1006283,
+    "ballots2023": 785518,
+    "validVotes2023": 776054
+  },
+  {
+    "id": 4,
+    "commissionSeat": "Bydgoszcz",
+    "seats": 12,
+    "eligible2023": 745557,
+    "ballots2023": 544560,
+    "validVotes2023": 533919
+  },
+  {
+    "id": 5,
+    "commissionSeat": "Toruń",
+    "seats": 13,
+    "eligible2023": 779436,
+    "ballots2023": 549683,
+    "validVotes2023": 537597
+  },
+  {
+    "id": 6,
+    "commissionSeat": "Lublin",
+    "seats": 15,
+    "eligible2023": 903524,
+    "ballots2023": 659345,
+    "validVotes2023": 648347
+  },
+  {
+    "id": 7,
+    "commissionSeat": "Chełm",
+    "seats": 12,
+    "eligible2023": 693111,
+    "ballots2023": 466435,
+    "validVotes2023": 456872
+  },
+  {
+    "id": 8,
+    "commissionSeat": "Zielona Góra",
+    "seats": 12,
+    "eligible2023": 741917,
+    "ballots2023": 529480,
+    "validVotes2023": 517041
+  },
+  {
+    "id": 9,
+    "commissionSeat": "Łódź",
+    "seats": 10,
+    "eligible2023": 581567,
+    "ballots2023": 460736,
+    "validVotes2023": 456552
+  },
+  {
+    "id": 10,
+    "commissionSeat": "Piotrków Trybunalski",
+    "seats": 9,
+    "eligible2023": 540069,
+    "ballots2023": 405246,
+    "validVotes2023": 396819
+  },
+  {
+    "id": 11,
+    "commissionSeat": "Sieradz",
+    "seats": 12,
+    "eligible2023": 731875,
+    "ballots2023": 544995,
+    "validVotes2023": 533128
+  },
+  {
+    "id": 12,
+    "commissionSeat": "Kraków",
+    "seats": 8,
+    "eligible2023": 492566,
+    "ballots2023": 370388,
+    "validVotes2023": 364671
+  },
+  {
+    "id": 13,
+    "commissionSeat": "Kraków",
+    "seats": 14,
+    "eligible2023": 957821,
+    "ballots2023": 766634,
+    "validVotes2023": 757522
+  },
+  {
+    "id": 14,
+    "commissionSeat": "Nowy Sącz",
+    "seats": 10,
+    "eligible2023": 609740,
+    "ballots2023": 434466,
+    "validVotes2023": 427292
+  },
+  {
+    "id": 15,
+    "commissionSeat": "Tarnów",
+    "seats": 9,
+    "eligible2023": 568577,
+    "ballots2023": 409980,
+    "validVotes2023": 403591
+  },
+  {
+    "id": 16,
+    "commissionSeat": "Płock",
+    "seats": 10,
+    "eligible2023": 627344,
+    "ballots2023": 451450,
+    "validVotes2023": 442567
+  },
+  {
+    "id": 17,
+    "commissionSeat": "Radom",
+    "seats": 9,
+    "eligible2023": 534819,
+    "ballots2023": 397954,
+    "validVotes2023": 391202
+  },
+  {
+    "id": 18,
+    "commissionSeat": "Siedlce",
+    "seats": 12,
+    "eligible2023": 736338,
+    "ballots2023": 551329,
+    "validVotes2023": 539408
+  },
+  {
+    "id": 19,
+    "commissionSeat": "Warszawa",
+    "seats": 20,
+    "eligible2023": 1993723,
+    "ballots2023": 1727645,
+    "validVotes2023": 1714719
+  },
+  {
+    "id": 20,
+    "commissionSeat": "Warszawa",
+    "seats": 12,
+    "eligible2023": 896957,
+    "ballots2023": 738665,
+    "validVotes2023": 730744
+  },
+  {
+    "id": 21,
+    "commissionSeat": "Opole",
+    "seats": 12,
+    "eligible2023": 737189,
+    "ballots2023": 490630,
+    "validVotes2023": 479968
+  },
+  {
+    "id": 22,
+    "commissionSeat": "Krosno",
+    "seats": 11,
+    "eligible2023": 662734,
+    "ballots2023": 450116,
+    "validVotes2023": 441996
+  },
+  {
+    "id": 23,
+    "commissionSeat": "Rzeszów",
+    "seats": 15,
+    "eligible2023": 955621,
+    "ballots2023": 682474,
+    "validVotes2023": 673776
+  },
+  {
+    "id": 24,
+    "commissionSeat": "Białystok",
+    "seats": 14,
+    "eligible2023": 881094,
+    "ballots2023": 619422,
+    "validVotes2023": 609244
+  },
+  {
+    "id": 25,
+    "commissionSeat": "Gdańsk",
+    "seats": 12,
+    "eligible2023": 827151,
+    "ballots2023": 626626,
+    "validVotes2023": 616287
+  },
+  {
+    "id": 26,
+    "commissionSeat": "Słupsk",
+    "seats": 14,
+    "eligible2023": 925938,
+    "ballots2023": 693189,
+    "validVotes2023": 682899
+  },
+  {
+    "id": 27,
+    "commissionSeat": "Bielsko-Biała",
+    "seats": 9,
+    "eligible2023": 587203,
+    "ballots2023": 451102,
+    "validVotes2023": 445346
+  },
+  {
+    "id": 28,
+    "commissionSeat": "Częstochowa",
+    "seats": 7,
+    "eligible2023": 444929,
+    "ballots2023": 330305,
+    "validVotes2023": 323941
+  },
+  {
+    "id": 29,
+    "commissionSeat": "Katowice",
+    "seats": 9,
+    "eligible2023": 550109,
+    "ballots2023": 393160,
+    "validVotes2023": 387408
+  },
+  {
+    "id": 30,
+    "commissionSeat": "Bielsko-Biała",
+    "seats": 9,
+    "eligible2023": 533844,
+    "ballots2023": 388256,
+    "validVotes2023": 381598
+  },
+  {
+    "id": 31,
+    "commissionSeat": "Katowice",
+    "seats": 12,
+    "eligible2023": 702884,
+    "ballots2023": 532883,
+    "validVotes2023": 526167
+  },
+  {
+    "id": 32,
+    "commissionSeat": "Katowice",
+    "seats": 9,
+    "eligible2023": 506119,
+    "ballots2023": 382635,
+    "validVotes2023": 377959
+  },
+  {
+    "id": 33,
+    "commissionSeat": "Kielce",
+    "seats": 16,
+    "eligible2023": 946053,
+    "ballots2023": 672589,
+    "validVotes2023": 659132
+  },
+  {
+    "id": 34,
+    "commissionSeat": "Elbląg",
+    "seats": 8,
+    "eligible2023": 455241,
+    "ballots2023": 307931,
+    "validVotes2023": 299380
+  },
+  {
+    "id": 35,
+    "commissionSeat": "Olsztyn",
+    "seats": 10,
+    "eligible2023": 589324,
+    "ballots2023": 401374,
+    "validVotes2023": 391058
+  },
+  {
+    "id": 36,
+    "commissionSeat": "Kalisz",
+    "seats": 12,
+    "eligible2023": 754649,
+    "ballots2023": 556329,
+    "validVotes2023": 542267
+  },
+  {
+    "id": 37,
+    "commissionSeat": "Konin",
+    "seats": 9,
+    "eligible2023": 586375,
+    "ballots2023": 429602,
+    "validVotes2023": 419243
+  },
+  {
+    "id": 38,
+    "commissionSeat": "Piła",
+    "seats": 9,
+    "eligible2023": 581291,
+    "ballots2023": 425114,
+    "validVotes2023": 413235
+  },
+  {
+    "id": 39,
+    "commissionSeat": "Poznań",
+    "seats": 10,
+    "eligible2023": 723283,
+    "ballots2023": 602166,
+    "validVotes2023": 596038
+  },
+  {
+    "id": 40,
+    "commissionSeat": "Koszalin",
+    "seats": 8,
+    "eligible2023": 475274,
+    "ballots2023": 330222,
+    "validVotes2023": 322149
+  },
+  {
+    "id": 41,
+    "commissionSeat": "Szczecin",
+    "seats": 12,
+    "eligible2023": 771809,
+    "ballots2023": 564735,
+    "validVotes2023": 554308
+  }
+]

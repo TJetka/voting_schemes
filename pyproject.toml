@@ -3,7 +3,7 @@ name = "laboratorium-koalicji-data"
 version = "0.1.0"
 description = "Reproducible official PKW data import and validation (browser app uses npm)"
 readme = "README.md"
-requires-python = "~=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = []
 
 [dependency-groups]
@@ -13,6 +13,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests/python"]
 addopts = "-q"
 

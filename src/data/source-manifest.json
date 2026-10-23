@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "dataVersion": "pkw-2023-v1",
+  "parserVersion": "1.0.0",
+  "electionDate": "2023-10-15",
+  "retrievalDate": "2026-10-23",
+  "sources": [
+    {
+      "sourceUrl": "https://danewyborcze.kbw.gov.pl/dane/2023/sejmsenat/okregi_sejm_csv.zip",
+      "localPath": "data/raw/okregi_sejm_csv.zip",
+      "retrievalDate": "2026-10-23",
+      "sha256": "275b0617e81bf1643f0139d279873cbec8d8fb6c14b6fd3657345dd3d26e5a1c",
+      "extractedFilename": "okregi_sejm_utf8.csv",
+      "extractedSha256": "23db1510fb408edd5600b640faa54ab30daae373ad146d254ba25852218f0858"
+    },
+    {
+      "sourceUrl": "https://danewyborcze.kbw.gov.pl/dane/2023/sejmsenat/wyniki_gl_na_listy_po_okregach_sejm_csv.zip",
+      "localPath": "data/raw/wyniki_gl_na_listy_po_okregach_sejm_csv.zip",
+      "retrievalDate": "2026-10-23",
+      "sha256": "7565b8fa5102f64c0435e994ad11369672a1948987ed639b12ad82da72005b03",
+      "extractedFilename": "wyniki_gl_na_listy_po_okregach_sejm_utf8.csv",
+      "extractedSha256": "fe994644d3c1fc5f3f3c19edb1dc4df55d648b86693763fbaf68811d70c4a599"
+    },
+    {
+      "sourceUrl": "https://eli.gov.pl/api/acts/DU/2023/2234/text/O/D20232234.pdf",
+      "retrievedFrom": "https://api.sejm.gov.pl/eli/acts/DU/2023/2234/text/O/D20232234.pdf",
+      "retrievalDate": "2026-10-23",
+      "sha256": "b3d99abcf2b40ac0343a29c97708936714f5ea9cb81d10655adb57f807d75c64",
+      "extractionCommand": "pdftotext -layout D20232234.pdf D20232234.pdftotext.txt",
+      "extractedTextSha256": "9ee152945acb6b2f7028af38d1cad6367efd34d61e9ec5d19da8fb765adb11ee",
+      "localPath": "data/raw/D20232234.pdftotext.txt.gz",
+      "localSha256": "82b8805be8560d461e645aaa9a4979012438f2b4892441829d310176da6dca6a",
+      "note": "Original eli.gov.pl PDF endpoint returned HTTP 500; retrieved the same official act through the Sejm API. Committed lossless gzip of the complete pdftotext -layout extraction; no election allocation algorithm generated the control seats."
+    }
+  ],
+  "normalizedSha256": "48c9842178c202a1ad1cbc37caa9ac931ed4e47970c82d07c91fac11ae7b2a0a",
+  "configuration": {
+    "joinKey": "official district number",
+    "districtIds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ],
+    "blankCommitteeCells": "zero votes, onBallot false"
+  },
+  "seed": null,
+  "gitSha": null,
+  "gitShaNote": "Initial source import preceded repository initialization. Reproduce source revision from the version-control commit containing this manifest.",
+  "notes": [
+    "Final electorate comes from results, not the metadata snapshot.",
+    "Overseas and ship votes are already included in district 19.",
+    "Control seats are independently extracted from the published result notice, not computed from votes."
+  ]
+}
