@@ -111,7 +111,7 @@ export default function App() {
   }, [dialog]);
   useEffect(() => {
     const readHash = () => {
-      if (!window.location.hash) return;
+      if (!window.location.hash.startsWith('#s=')) return;
       try {
         const next = scenarioFromHash(window.location.hash);
         setScenario(next);

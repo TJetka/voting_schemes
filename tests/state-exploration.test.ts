@@ -5,6 +5,7 @@ import * as engine from '../src/model/engine';
 import { evaluateScenario } from '../src/model/engine';
 import {
   exportResultsCsv,
+  loadScenario,
   parseScenario,
   scenarioFromHash,
   scenarioId,
@@ -41,7 +42,10 @@ const yAxis: Axis = {
   step: 10_000,
 };
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe('sensitivity paths and thresholds', () => {
   it('constructs exact integer grids with explicit endpoint and sample caps', () => {
@@ -197,6 +201,34 @@ describe('two-dimensional experiments', () => {
 });
 
 describe('reproducible scenario state', () => {
+  it.each(['', '#workspace', '#district-inspector'])(
+    'loads local state while ignoring ordinary document fragment %s',
+    (hash) => {
+      const saved = mergeEntities(createDefaultScenario(), ['ko', 'nl', 'razem']);
+      const getItem = vi.fn().mockReturnValue(serializeScenario(saved));
+      vi.stubGlobal('window', { location: { hash } });
+      vi.stubGlobal('localStorage', { getItem });
+      expect(loadScenario()).toEqual(saved);
+      expect(getItem).toHaveBeenCalledOnce();
+      getItem.mockReturnValue(null);
+      expect(loadScenario()).toBeNull();
+    },
+  );
+
+  it('prioritizes shared scenario hashes and keeps malformed shared links actionable', () => {
+    const shared = mergeEntities(createDefaultScenario(), ['nl', 'razem']);
+    const getItem = vi.fn().mockReturnValue(serializeScenario(createDefaultScenario()));
+    vi.stubGlobal('window', { location: { hash: scenarioToHash(shared) } });
+    vi.stubGlobal('localStorage', { getItem });
+    expect(loadScenario()).toEqual(shared);
+    expect(getItem).not.toHaveBeenCalled();
+    for (const hash of ['#s=', '#s=!', '#s=ww']) {
+      vi.stubGlobal('window', { location: { hash } });
+      expect(() => loadScenario()).toThrow(/link/);
+    }
+    expect(getItem).not.toHaveBeenCalled();
+  });
+
   it('ignores object-key and unordered membership order but preserves meaningful note text/order', () => {
     const scenario = mergeEntities(createDefaultScenario(), ['nl', 'razem'], 'ordinary');
     scenario.allianceSelection = ['ko', 'nl+razem'];

@@ -66,6 +66,9 @@ describe('exact support and state invariants', () => {
     for (const invalid of ['NaN', '-1', '101', '1e1', '1.0000001'])
       expect(() => parseSupport(invalid)).toThrow();
     expect(formatSupport(10_000_000)).toBe('10');
+    expect(formatSupport(10_000_000, 0)).toBe('10');
+    expect(formatSupport(100_000_000, 0)).toBe('100');
+    expect(formatSupport(0, 0)).toBe('0');
     expect(formatSupport(5_140_000)).toBe('5.14');
   });
 

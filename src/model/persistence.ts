@@ -110,7 +110,7 @@ export function scenarioFromHash(hash: string): Scenario {
 }
 
 export function loadScenario(): Scenario | null {
-  if (window.location.hash) return scenarioFromHash(window.location.hash);
+  if (window.location.hash.startsWith('#s=')) return scenarioFromHash(window.location.hash);
   const saved = localStorage.getItem(STORAGE_KEY);
   return saved ? parseScenario(saved) : null;
 }

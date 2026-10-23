@@ -11,6 +11,6 @@ tasks:
   browser-tests:
     cmds: [npm run test:e2e]
   style:
-    cmds: [uv run ruff format scripts tests/python, uv run ruff check --fix scripts tests/python]
+    cmds: [npm run format, uv run ruff format scripts tests/python, uv run ruff check --fix scripts tests/python]
   style-verify:
-    cmds: [npm run typecheck, uv run ruff check scripts tests/python, uv run ruff format --check scripts tests/python]
+    cmds: [npm run typecheck, npm run format:check, uv run ruff check scripts tests/python, uv run ruff format --check scripts tests/python]
