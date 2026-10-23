@@ -26,7 +26,7 @@ test('regional default preserves national polls and exposes historical and unifo
   const inspector = page.getByRole('region', { name: 'Szczegóły okręgu 19' });
   await expect(inspector.getByTestId('regional-share-L-projected')).toHaveText('64,99%');
   await page.getByText('Geografia i frekwencja', { exact: true }).click();
-  const geography = page.getByLabel('Rozkład głosów', { exact: true });
+  const geography = page.getByRole('combobox', { name: 'Rozkład głosów', exact: true });
   await expect(geography).toHaveValue('family');
   await geography.selectOption('historical');
   await expect(page.getByTestId('camp-L')).toHaveText('228');
@@ -102,7 +102,9 @@ test('a version 1.0 saved scenario retains its results until explicit upgrade an
   const shared = await context.newPage();
   await shared.goto(share);
   await shared.getByText('Geografia i frekwencja', { exact: true }).click();
-  await expect(shared.getByLabel('Rozkład głosów', { exact: true })).toHaveValue('family');
+  await expect(shared.getByRole('combobox', { name: 'Rozkład głosów', exact: true })).toHaveValue(
+    'family',
+  );
   await expect(shared.getByTestId('camp-L')).toHaveText('226');
   for (const family of families) {
     await expect(shared.getByTestId(`regional-national-${family}`)).toBeVisible();
