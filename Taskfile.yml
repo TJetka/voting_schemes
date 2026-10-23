@@ -1,0 +1,16 @@
+version: '3'
+tasks:
+  install:
+    cmds: [npm ci, uv sync --locked]
+  dev:
+    cmds: [npm run dev]
+  build:
+    cmds: [npm run build]
+  tests:
+    cmds: [npm test, uv run pytest -q tests/python]
+  browser-tests:
+    cmds: [npm run test:e2e]
+  style:
+    cmds: [uv run ruff format scripts tests/python, uv run ruff check --fix scripts tests/python]
+  style-verify:
+    cmds: [npm run typecheck, uv run ruff check scripts tests/python, uv run ruff format --check scripts tests/python]
