@@ -10,13 +10,143 @@ export function majorityDescription(bounds: SeatBounds): string {
 }
 
 export function ResultBar({ scenario, result }: { scenario: Scenario; result: Result }) {
-  return <section className="result-bar" aria-label="Podsumowanie mandatów" aria-live="polite">{(['L', 'R', 'C'] as const).map((family) => <div key={family} className={`result-stat ${family}`}><span>{family} · {scenario.familyLabels[family].replace(' — grupa scenariusza', '').toLocaleUpperCase('pl')}</span><strong data-testid={`camp-${family}`}>{boundsText(result.campBounds[family])}</strong><em>mandatów</em></div>)}<div className="result-stat alliance"><span>TWÓJ SOJUSZ · {scenario.allianceSelection.length} LIST</span><strong data-testid="alliance-seats">{boundsText(result.allianceSeats)}</strong><em>/ 231</em><span>{majorityDescription(result.allianceSeats)}</span><div className="majority-meter"><i style={{ width: `${result.allianceSeats.lower / 460 * 100}%` }} /></div></div><div className="result-stat"><span>LISTY NAD PROGIEM</span><strong>{result.eligibleListCount}</strong><em>z {result.runningListCount}</em><span>{result.winningListCount} zdobywa mandaty</span></div></section>;
+  return (
+    <section className="result-bar" aria-label="Podsumowanie mandatów" aria-live="polite">
+      {(['L', 'R', 'C'] as const).map((family) => (
+        <div key={family} className={`result-stat ${family}`}>
+          <span>
+            {family} ·{' '}
+            {scenario.familyLabels[family]
+              .replace(' — grupa scenariusza', '')
+              .toLocaleUpperCase('pl')}
+          </span>
+          <strong data-testid={`camp-${family}`}>{boundsText(result.campBounds[family])}</strong>
+          <em>mandatów</em>
+        </div>
+      ))}
+      <div className="result-stat alliance">
+        <span>TWÓJ SOJUSZ · {scenario.allianceSelection.length} LIST</span>
+        <strong data-testid="alliance-seats">{boundsText(result.allianceSeats)}</strong>
+        <em>/ 231</em>
+        <span>{majorityDescription(result.allianceSeats)}</span>
+        <div className="majority-meter">
+          <i style={{ width: `${(result.allianceSeats.lower / 460) * 100}%` }} />
+        </div>
+      </div>
+      <div className="result-stat">
+        <span>LISTY NAD PROGIEM</span>
+        <strong>{result.eligibleListCount}</strong>
+        <em>z {result.runningListCount}</em>
+        <span>{result.winningListCount} zdobywa mandaty</span>
+      </div>
+    </section>
+  );
 }
 
-export default function ResultSummary({ scenario, result, baselineResult }: { scenario: Scenario; result: Result; baselineResult: Result }) {
+export default function ResultSummary({
+  scenario,
+  result,
+  baselineResult,
+}: {
+  scenario: Scenario;
+  result: Result;
+  baselineResult: Result;
+}) {
   const centreLists = scenario.lists.filter((list) => listFamily(list, scenario.entities) === 'C');
   const selectedCentre = centreLists.filter((list) => scenario.allianceSelection.includes(list.id));
   const centre = selectedCentre.length ? selectedCentre : centreLists;
-  const alternative = (family: 'L' | 'R') => allianceBounds(result, [...scenario.lists.filter((list) => listFamily(list, scenario.entities) === family).map((list) => list.id), ...centre.map((list) => list.id)]);
-  return <section className="panel" aria-labelledby="result-heading"><div className="panel-heading"><div><span className="section-no">03 / PODZIAŁ MANDATÓW</span><h2 id="result-heading">Co wynika z tego układu?</h2></div><span className="badge">Sejm · 460</span></div><div className="seat-strip" aria-label={`L ${boundsText(result.campBounds.L)}, R ${boundsText(result.campBounds.R)}, C ${boundsText(result.campBounds.C)}`}>{(['L', 'R', 'C'] as const).map((family) => <span key={family} className={family} style={{ width: `${result.campSeats[family] / 460 * 100}%` }} />)}</div><div className="seat-strip-labels"><span>0</span><span>231 · większość pełnego składu</span><span>460</span></div><div className="stats-grid"><div><strong>{percent(result.excludedVoteShare, 2)}</strong><span>głosów na listy niezakwalifikowane</span></div><div><strong>{result.runningListCount} / {result.eligibleListCount} / {result.winningListCount}</strong><span>startuje / kwalifikuje się / ma mandaty</span></div><div><strong>{result.status === 'resolved' ? '460 / 460' : 'nierozstrzygnięte'}</strong><span>{result.status === 'resolved' ? 'mandatów przydzielonych' : 'przedziały zamiast arbitralnego wyniku'}</span></div></div><div className="callout"><strong>Zmiana grup względem przypiętej bazy</strong><p>{result.status === 'resolved' && baselineResult.status === 'resolved' ? <>L: {signed(result.campSeats.L - baselineResult.campSeats.L)} · R: {signed(result.campSeats.R - baselineResult.campSeats.R)} · C: {signed(result.campSeats.C - baselineResult.campSeats.C)}. Zysk wspólnej listy może pochodzić również od innych list własnej grupy.</> : <>Nierozstrzygnięte mandaty: dokładna zmiana pozostaje nieznana. Baza → obecnie: L {boundsText(baselineResult.campBounds.L)} → {boundsText(result.campBounds.L)}; R {boundsText(baselineResult.campBounds.R)} → {boundsText(result.campBounds.R)}; C {boundsText(baselineResult.campBounds.C)} → {boundsText(result.campBounds.C)}.</>}</p></div>{centre.some((list) => (result.nationalListSeatBounds[list.id]?.upper ?? 0) > 0) && <div className="callout" style={{ marginTop: 12 }}><strong>Alternatywne większości z {selectedCentre.length ? 'wybranym' : 'całym niezaangażowanym'} centrum</strong><p>L + centrum: <strong data-testid="left-centre">{boundsText(alternative('L'))}</strong> · R + centrum: <strong data-testid="right-centre">{boundsText(alternative('R'))}</strong>.<br />To odrębne warianty sojuszu; mandaty centrum nie są przydzielane dwa razy. Zaznacz listy centrum, aby zawęzić warianty.</p></div>}<p className="small muted" style={{ margin: '12px 0 0' }}>Mandaty należą do list, nie do podmiotów we wspólnej liście. Wynik opisuje większość przy wybranym założeniu sojuszu; nie przesądza o utworzeniu rządu.</p></section>;
+  const alternative = (family: 'L' | 'R') =>
+    allianceBounds(result, [
+      ...scenario.lists
+        .filter((list) => listFamily(list, scenario.entities) === family)
+        .map((list) => list.id),
+      ...centre.map((list) => list.id),
+    ]);
+  return (
+    <section className="panel" aria-labelledby="result-heading">
+      <div className="panel-heading">
+        <div>
+          <span className="section-no">03 / PODZIAŁ MANDATÓW</span>
+          <h2 id="result-heading">Co wynika z tego układu?</h2>
+        </div>
+        <span className="badge">Sejm · 460</span>
+      </div>
+      <div
+        className="seat-strip"
+        aria-label={`L ${boundsText(result.campBounds.L)}, R ${boundsText(result.campBounds.R)}, C ${boundsText(result.campBounds.C)}`}
+      >
+        {(['L', 'R', 'C'] as const).map((family) => (
+          <span
+            key={family}
+            className={family}
+            style={{ width: `${(result.campSeats[family] / 460) * 100}%` }}
+          />
+        ))}
+      </div>
+      <div className="seat-strip-labels">
+        <span>0</span>
+        <span>231 · większość pełnego składu</span>
+        <span>460</span>
+      </div>
+      <div className="stats-grid">
+        <div>
+          <strong>{percent(result.excludedVoteShare, 2)}</strong>
+          <span>głosów na listy niezakwalifikowane</span>
+        </div>
+        <div>
+          <strong>
+            {result.runningListCount} / {result.eligibleListCount} / {result.winningListCount}
+          </strong>
+          <span>startuje / kwalifikuje się / ma mandaty</span>
+        </div>
+        <div>
+          <strong>{result.status === 'resolved' ? '460 / 460' : 'nierozstrzygnięte'}</strong>
+          <span>
+            {result.status === 'resolved'
+              ? 'mandatów przydzielonych'
+              : 'przedziały zamiast arbitralnego wyniku'}
+          </span>
+        </div>
+      </div>
+      <div className="callout">
+        <strong>Zmiana grup względem przypiętej bazy</strong>
+        <p>
+          {result.status === 'resolved' && baselineResult.status === 'resolved' ? (
+            <>
+              L: {signed(result.campSeats.L - baselineResult.campSeats.L)} · R:{' '}
+              {signed(result.campSeats.R - baselineResult.campSeats.R)} · C:{' '}
+              {signed(result.campSeats.C - baselineResult.campSeats.C)}. Zysk wspólnej listy może
+              pochodzić również od innych list własnej grupy.
+            </>
+          ) : (
+            <>
+              Nierozstrzygnięte mandaty: dokładna zmiana pozostaje nieznana. Baza → obecnie: L{' '}
+              {boundsText(baselineResult.campBounds.L)} → {boundsText(result.campBounds.L)}; R{' '}
+              {boundsText(baselineResult.campBounds.R)} → {boundsText(result.campBounds.R)}; C{' '}
+              {boundsText(baselineResult.campBounds.C)} → {boundsText(result.campBounds.C)}.
+            </>
+          )}
+        </p>
+      </div>
+      {centre.some((list) => (result.nationalListSeatBounds[list.id]?.upper ?? 0) > 0) && (
+        <div className="callout" style={{ marginTop: 12 }}>
+          <strong>
+            Alternatywne większości z{' '}
+            {selectedCentre.length ? 'wybranym' : 'całym niezaangażowanym'} centrum
+          </strong>
+          <p>
+            L + centrum: <strong data-testid="left-centre">{boundsText(alternative('L'))}</strong> ·
+            R + centrum: <strong data-testid="right-centre">{boundsText(alternative('R'))}</strong>.
+            <br />
+            To odrębne warianty sojuszu; mandaty centrum nie są przydzielane dwa razy. Zaznacz listy
+            centrum, aby zawęzić warianty.
+          </p>
+        </div>
+      )}
+      <p className="small muted" style={{ margin: '12px 0 0' }}>
+        Mandaty należą do list, nie do podmiotów we wspólnej liście. Wynik opisuje większość przy
+        wybranym założeniu sojuszu; nie przesądza o utworzeniu rządu.
+      </p>
+    </section>
+  );
 }

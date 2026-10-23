@@ -4,7 +4,7 @@ Laboratorium koalicji is the static Polish Sejm coalition and threshold simulato
 
 ## Stack and architecture
 
-- React + TypeScript + Vite, Node 24 LTS, npm lockfile.
+- React + TypeScript + Vite, Node 24 LTS, npm lockfile; Prettier for TS/TSX/CSS formatting.
 - Pure electoral mathematics in `src/model/`; React components must call that engine.
 - Workers run exhaustive partitions and sensitivity; request IDs prevent stale results.
 - Tiny Python 3.12 standard-library importer plus pytest/ruff development tools.
@@ -14,7 +14,7 @@ Laboratorium koalicji is the static Polish Sejm coalition and threshold simulato
 
 ## Commands
 
-`npm ci`; `npm run dev`; `npm run typecheck`; `npm test`; `npm run build`; `npm run test:e2e`.
+`npm ci`; `npm run dev`; `npm run typecheck`; `npm run format:check`; `npm test`; `npm run build`; `npm run test:e2e`.
 
 Data checks: `uv sync --locked`; `uv run pytest -q tests/python`; `uv run ruff check scripts tests/python`; `uv run ruff format --check scripts tests/python`.
 

@@ -7,5 +7,16 @@ export const SCHEMA_VERSION = 1;
 export const REGULARIZATION = 0.01;
 export const IPF_TOLERANCE = 1e-12;
 export const QUOTIENT_TOLERANCE = 1e-12;
-export const ENTITY_IDS = ['ko', 'nl', 'razem', 'pps', 'pis', 'konf', 'kkp', 'rozwoj', 'psl', 'pl2050'] as const;
+export const ENTITY_IDS = [
+  'ko',
+  'nl',
+  'razem',
+  'pps',
+  'pis',
+  'konf',
+  'kkp',
+  'rozwoj',
+  'psl',
+  'pl2050',
+] as const;
 export const PROXY_IDS = ['ko', 'nl', 'pis', 'konf', 'td'] as const;

@@ -14,6 +14,7 @@ npm ci
 npm run dev
 npm test                 # pure engine, state and exploration checks
 npm run typecheck
+npm run format:check
 npm run build
 npm run preview
 ```
@@ -23,9 +24,9 @@ Python 3.12 and uv are used only for reproducible official-data import and its t
 ```sh
 uv sync --locked
 uv run python scripts/import_pkw.py --help
-uv run pytest -q tests/python
-uv run ruff check scripts tests/python
-uv run ruff format --check scripts tests/python
+uv run pytest -qtests/python
+uv run ruff check scriptstests/python
+uv run ruff format --check scriptstests/python
 ```
 
 Browser acceptance checks use Playwright:
@@ -43,8 +44,8 @@ src/components/  Polish interactive workspace and exploration
 src/workers/     Cancellable exhaustive and sensitivity calculations
 src/data/        Versioned normalized official data and source manifest
 scripts/         Deterministic PKW importer
- data/raw/       Small, immutable official inputs and provenance
- tests/          Mathematical, historical, state and browser checks
+data/raw/       Small, immutable official inputs and provenance
+tests/          Mathematical, historical, state and browser checks
 .github/workflows/  Validation and GitHub Pages delivery
 ```
 

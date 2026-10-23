@@ -33,6 +33,7 @@ jobs:
       - run: uv run ruff check scripts tests/python
       - run: uv run ruff format --check scripts tests/python
       - run: npm run typecheck
+      - run: npm run format:check
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - name: Browser acceptance under repository subpath

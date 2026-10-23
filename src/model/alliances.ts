@@ -4,19 +4,27 @@ import type { Result, Scenario, SeatBounds } from './types';
 
 export type AllianceRule = 'L' | 'R' | 'L+C' | 'R+C';
 
-export function allianceBounds(result: Pick<Result, 'districtAllocations'>, ids: readonly string[]): SeatBounds {
-  return result.districtAllocations.reduce((sum, district) => {
-    const bounds = districtAllianceBounds(district, ids);
-    return { lower: sum.lower + bounds.lower, upper: sum.upper + bounds.upper };
-  }, { lower: 0, upper: 0 });
+export function allianceBounds(
+  result: Pick<Result, 'districtAllocations'>,
+  ids: readonly string[],
+): SeatBounds {
+  return result.districtAllocations.reduce(
+    (sum, district) => {
+      const bounds = districtAllianceBounds(district, ids);
+      return { lower: sum.lower + bounds.lower, upper: sum.upper + bounds.upper };
+    },
+    { lower: 0, upper: 0 },
+  );
 }
 
 export function allianceIdsForRule(scenario: Scenario, rule: AllianceRule): string[] {
   const family = rule.startsWith('L') ? 'L' : 'R';
-  return scenario.lists.filter((list) => {
-    const alignment = listFamily(list, scenario.entities);
-    return alignment === family || (rule.endsWith('+C') && alignment === 'C');
-  }).map((list) => list.id);
+  return scenario.lists
+    .filter((list) => {
+      const alignment = listFamily(list, scenario.entities);
+      return alignment === family || (rule.endsWith('+C') && alignment === 'C');
+    })
+    .map((list) => list.id);
 }
 
 export function majorityLabel(bounds: SeatBounds): string {

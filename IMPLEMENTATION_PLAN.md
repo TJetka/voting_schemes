@@ -38,4 +38,19 @@ Implement versioned JSON/CSV export, validated JSON import, URL hashes, local pe
 
 ## Validation record
 
-Pending implementation. Final results, measured performance and any external deployment blockers will be recorded here.
+Implementation gates 0–4 are complete. Gate 5 source, production build and automated delivery workflow are complete; hosted browser validation and Pages publication are being verified.
+
+Verified on 23 October 2026:
+
+- 55 Vitest tests pass, including every official historical district result, all six polling fixtures, mathematical edge cases, partition counts, Unicode/JSON/hash roundtrips, exact threshold probes, heatmap limits and stale response rejection.
+- 10 pytest importer tests pass; Ruff lint and format checks pass.
+- TypeScript strict checking, Prettier checking and the production build pass on Node 24.22.1.
+- Direct native Chrome acceptance checks pass: keyboard merge, forbidden L–C–R combination, centre 8%/5%, donor conservation, turnout invariance, historical replay, JSON import, share and refresh, district quotient explanation and 390 CSS pixel layout without overflow.
+- Browser Worker measurements on this macOS ARM64 desktop: default 2,385 partitions in 2.50 s; default 21×21 heatmap in 0.86 s. Both remain cancellable and preserve declared resolution. These are observations, not timing assertions in tests.
+- Exhaustive result replay reproduced 266/194/0 in the manual builder. The 1D transition log correctly identifies 4.999999% → 5% eligibility for Razem and opens affected district allocations.
+- Playwright contains 11 acceptance journeys. Local headless Chromium launch is restricted by the host sandbox; native browser checks above remain separate evidence. GitHub Actions runs the automated suite under the repository subpath.
+- The first CI attempt passed all unit/importer checks but failed installing Chromium while `ubuntu-latest` migrated to Ubuntu 26. Delivery now pins Ubuntu 24.04; the dependency stack is updated and locked.
+
+The source repository is https://github.com/TJetka/voting_schemes. The workspace protects `.git`, so this session used Git metadata at `/tmp/coalition-git/.git` with this workspace as its work tree. A normal clone of the pushed repository has standard Git metadata.
+
+Pages requires the repository’s Settings → Pages → Source to be GitHub Actions. SSH pushing is available; repository settings require a signed-in GitHub session. No deployment is claimed until the public URL is checked.

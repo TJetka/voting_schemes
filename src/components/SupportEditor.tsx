@@ -1,27 +1,145 @@
 import { useEffect, useRef, useState } from 'react';
 import { baselineTurnout, historicalData, maxTurnoutSliderPct } from '../model/data';
-import { defaultDonors, equalizeSupport, formatSupport, parseSupport, redistributeSupport, setEntityActive } from '../model/support';
+import {
+  defaultDonors,
+  equalizeSupport,
+  formatSupport,
+  parseSupport,
+  redistributeSupport,
+  setEntityActive,
+} from '../model/support';
 import type { Entity, Family, Scenario } from '../model/types';
 import { errorText, number, percent, shortName } from './display';
 
-interface Props { scenario: Scenario; onChange: (scenario: Scenario, notice?: string) => void; onError: (message: string) => void }
+interface Props {
+  scenario: Scenario;
+  onChange: (scenario: Scenario, notice?: string) => void;
+  onError: (message: string) => void;
+}
 
-function SupportRow({ entity, changed, onCommit, onLock, onActive, onPpsTransfer }: { entity: Entity; changed: boolean; onCommit: (value: string) => boolean; onLock: () => void; onActive: () => void; onPpsTransfer: () => void }) {
+function SupportRow({
+  entity,
+  changed,
+  onCommit,
+  onLock,
+  onActive,
+  onPpsTransfer,
+}: {
+  entity: Entity;
+  changed: boolean;
+  onCommit: (value: string) => boolean;
+  onLock: () => void;
+  onActive: () => void;
+  onPpsTransfer: () => void;
+}) {
   const [draft, setDraft] = useState(formatSupport(entity.supportUnits));
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestCommit = useRef(onCommit);
   const latestEntity = useRef(entity);
   latestCommit.current = onCommit;
   latestEntity.current = entity;
-  useEffect(() => { setDraft(formatSupport(entity.supportUnits)); }, [entity.supportUnits]);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  const commit = () => { if (timer.current) clearTimeout(timer.current); if (!onCommit(draft)) setDraft(formatSupport(entity.supportUnits)); };
-  return <div className={`entity-row ${entity.active ? '' : 'inactive'} ${changed ? 'changed' : ''}`} data-testid={`entity-${entity.id}`}>
-    <div className="entity-name"><strong>{entity.label}{!entity.active && <span className="badge" style={{ marginLeft: 5 }}>nieaktywny</span>}</strong><label title="Zablokowane poparcie nie finansuje innych zmian"><input type="checkbox" checked={entity.locked} onChange={onLock} aria-label={`Zablokuj ${entity.label}`} />blokada</label></div>
-    <div className="entity-source"><span>{entity.publishedPollSharePct === null ? `Brak osobnego pomiaru; ${formatSupport(entity.supportUnits).replace('.', ',')}% przydzielone w scenariuszu` : `Sondaż: ${percent(entity.publishedPollSharePct)}${entity.supportUnits !== Math.round(entity.publishedPollSharePct * 1e6) ? ' · założenie użytkownika' : ''}`}</span><span title="Historyczny profil geograficzny">Profil: {shortName(entity.proxyId)}</span></div>
-    <div className="entity-input"><input type="range" aria-label={`Suwak poparcia: ${entity.label}`} min="0" max="100" step="0.01" disabled={!entity.active || entity.locked} value={Number(draft.replace(',', '.')) || 0} onChange={(event) => { const value = event.target.value; setDraft(value); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => { if (!latestCommit.current(value)) setDraft(formatSupport(latestEntity.current.supportUnits)); }, 180); }} /><input aria-label={`Poparcie ${entity.label}`} inputMode="decimal" type="text" disabled={!entity.active || entity.locked} value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') { event.currentTarget.blur(); } }} /><span>%</span></div>
-    <div className="inline small" style={{ marginTop: 6 }}><button className="subtle small" style={{ padding: '2px 0', fontSize: '.64rem' }} onClick={onActive}>{entity.active ? 'Wyłącz podmiot (po przeniesieniu poparcia)' : 'Włącz podmiot (0%; następnie wybierz transfer)'}</button>{!entity.active && entity.id === 'pps' && <button className="subtle small" style={{ padding: '2px 0', fontSize: '.64rem' }} onClick={onPpsTransfer}>Przykład: włącz PPS i przenieś 1 p.p. z NL</button>}</div>
-  </div>;
+  useEffect(() => {
+    setDraft(formatSupport(entity.supportUnits));
+  }, [entity.supportUnits]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const commit = () => {
+    if (timer.current) clearTimeout(timer.current);
+    if (!onCommit(draft)) setDraft(formatSupport(entity.supportUnits));
+  };
+  return (
+    <div
+      className={`entity-row ${entity.active ? '' : 'inactive'} ${changed ? 'changed' : ''}`}
+      data-testid={`entity-${entity.id}`}
+    >
+      <div className="entity-name">
+        <strong>
+          {entity.label}
+          {!entity.active && (
+            <span className="badge" style={{ marginLeft: 5 }}>
+              nieaktywny
+            </span>
+          )}
+        </strong>
+        <label title="Zablokowane poparcie nie finansuje innych zmian">
+          <input
+            type="checkbox"
+            checked={entity.locked}
+            onChange={onLock}
+            aria-label={`Zablokuj ${entity.label}`}
+          />
+          blokada
+        </label>
+      </div>
+      <div className="entity-source">
+        <span>
+          {entity.publishedPollSharePct === null
+            ? `Brak osobnego pomiaru; ${formatSupport(entity.supportUnits).replace('.', ',')}% przydzielone w scenariuszu`
+            : `Sondaż: ${percent(entity.publishedPollSharePct)}${entity.supportUnits !== Math.round(entity.publishedPollSharePct * 1e6) ? ' · założenie użytkownika' : ''}`}
+        </span>
+        <span title="Historyczny profil geograficzny">Profil: {shortName(entity.proxyId)}</span>
+      </div>
+      <div className="entity-input">
+        <input
+          type="range"
+          aria-label={`Suwak poparcia: ${entity.label}`}
+          min="0"
+          max="100"
+          step="0.01"
+          disabled={!entity.active || entity.locked}
+          value={Number(draft.replace(',', '.')) || 0}
+          onChange={(event) => {
+            const value = event.target.value;
+            setDraft(value);
+            if (timer.current) clearTimeout(timer.current);
+            timer.current = setTimeout(() => {
+              if (!latestCommit.current(value))
+                setDraft(formatSupport(latestEntity.current.supportUnits));
+            }, 180);
+          }}
+        />
+        <input
+          aria-label={`Poparcie ${entity.label}`}
+          inputMode="decimal"
+          type="text"
+          disabled={!entity.active || entity.locked}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.currentTarget.blur();
+            }
+          }}
+        />
+        <span>%</span>
+      </div>
+      <div className="inline small" style={{ marginTop: 6 }}>
+        <button
+          className="subtle small"
+          style={{ padding: '2px 0', fontSize: '.64rem' }}
+          onClick={onActive}
+        >
+          {entity.active
+            ? 'Wyłącz podmiot (po przeniesieniu poparcia)'
+            : 'Włącz podmiot (0%; następnie wybierz transfer)'}
+        </button>
+        {!entity.active && entity.id === 'pps' && (
+          <button
+            className="subtle small"
+            style={{ padding: '2px 0', fontSize: '.64rem' }}
+            onClick={onPpsTransfer}
+          >
+            Przykład: włącz PPS i przenieś 1 p.p. z NL
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function SupportEditor({ scenario, onChange, onError }: Props) {
@@ -30,27 +148,300 @@ export default function SupportEditor({ scenario, onChange, onError }: Props) {
   const [equalIds, setEqualIds] = useState<string[]>([]);
   const [changedIds, setChangedIds] = useState<string[]>([]);
   const [highlightKey, setHighlightKey] = useState('');
-  const supportKey = scenario.entities.map((entity) => `${entity.id}:${entity.supportUnits}`).join('|');
-  const attempt = (operation: () => Scenario, notice?: string) => { try { onChange(operation(), notice); } catch (error) { onError(errorText(error)); } };
-  const setSupport = (id: string, value: string): boolean => { try {
-    const units = parseSupport(value);
-    if (scenario.entities.find((entity) => entity.id === id)?.supportUnits === units) return true;
-    const donors = donorMode === 'selected' ? [donor] : defaultDonors(scenario, id, donorMode);
-    const next = redistributeSupport(scenario, id, units, donors);
-    const changed = next.entities.filter((entity) => entity.supportUnits !== scenario.entities.find((old) => old.id === entity.id)?.supportUnits);
-    setChangedIds(changed.map((entity) => entity.id));
-    setHighlightKey(next.entities.map((entity) => `${entity.id}:${entity.supportUnits}`).join('|'));
-    onChange(next, `Zmiana poparcia: ${changed.map((entity) => `${shortName(entity.id)} ${formatSupport(scenario.entities.find((old) => old.id === entity.id)!.supportUnits)} → ${formatSupport(entity.supportUnits)}%`).join('; ')}. Pula: ${donorMode === 'all' ? 'pozostałe odblokowane podmioty' : donorMode === 'family' ? 'ta sama grupa (suma stała)' : shortName(donor)}.`);
-    return true;
-  } catch (cause) { onError(errorText(cause)); return false; } };
-  const changeEntity = (id: string, patch: Partial<Entity>) => onChange({ ...scenario, entities: scenario.entities.map((entity) => entity.id === id ? { ...entity, ...patch } : entity) });
-  return <section className="panel" aria-labelledby="support-heading">
-    <div className="panel-heading"><div><span className="section-no">01 / ELEKTORAT</span><h2 id="support-heading">Poparcie w kraju</h2><p>Ten sam elektorat. Twoje założenia.</p></div><span className="badge">100% zachowane</span></div>
-    <div className="donor-bar"><label className="field">Zmianę finansują<select aria-label="Zmianę finansują" value={donorMode} onChange={(event) => setDonorMode(event.target.value as typeof donorMode)}><option value="all">Wszyscy pozostali odblokowani</option><option value="family">Tylko ta sama grupa — stała suma</option><option value="selected">Jeden wybrany dawca</option></select></label>{donorMode === 'selected' && <label className="field" style={{ marginTop: 8 }}>Wybrany dawca<select aria-label="Wybrany dawca" value={donor} onChange={(event) => setDonor(event.target.value)}>{scenario.entities.filter((entity) => entity.active && !entity.locked).map((entity) => <option value={entity.id} key={entity.id}>{entity.label}</option>)}</select></label>}<p>Odejmujemy lub dodajemy poparcie proporcjonalnie w wybranej puli. Reszta pozostaje stała; wartości zaokrąglamy dokładnie do 0,000001 p.p.</p></div>
-    {(['L', 'R', 'C'] as Family[]).map((family) => <div className="entity-group" key={family}><header className="entity-group-heading"><h3 style={{ color: `var(--${family === 'L' ? 'left' : family === 'R' ? 'right' : 'center'})` }}>{scenario.familyLabels[family]}</h3><span>{percent(scenario.entities.filter((entity) => entity.family === family).reduce((sum, entity) => sum + entity.supportUnits, 0) / 1e6)}</span></header>{scenario.entities.filter((entity) => entity.family === family).map((entity) => <SupportRow key={entity.id} entity={entity} changed={highlightKey === supportKey && changedIds.includes(entity.id)} onCommit={(value) => setSupport(entity.id, value)} onLock={() => changeEntity(entity.id, { locked: !entity.locked })} onActive={() => attempt(() => setEntityActive(scenario, entity.id, !entity.active), 'Zmieniono aktywność. Aktywacja nie przydziela poparcia: wybierz dawców i ustaw udział. Sprawdź wybór sojuszu parlamentarnego.')} onPpsTransfer={() => attempt(() => redistributeSupport(setEntityActive(scenario, 'pps', true), 'pps', 1_000_000, ['nl']), 'Eksperyment syntetyczny: przeniesiono 1 p.p. z NL do PPS.')} />)}</div>)}
-    <div className="residual"><div>Głosy poza dziesięcioma podmiotami<small>Unia Centrum 0,15% + inne 0,36% · stała reszta</small></div><strong>0,51%</strong></div><div className="total"><span>Łącznie, z resztą</span><span>{percent((scenario.entities.reduce((sum, entity) => sum + entity.supportUnits, 0) + scenario.residual.supportUnits) / 1e6, 6)} ✓</span></div>
-    <div className="config-panel"><details><summary>Geografia i frekwencja</summary><label className="field">Rozkład głosów<select value={scenario.geographyMode} onChange={(event) => onChange({ ...scenario, geographyMode: event.target.value as Scenario['geographyMode'] })}><option value="historical">Profile okręgowe 2023 + kalibracja</option><option value="uniform">Jednakowe poparcie w każdym okręgu</option></select></label><label className="field">Frekwencja: {percent(scenario.turnout * 100)}<input aria-label="Frekwencja" type="range" min="0.01" max={maxTurnoutSliderPct} step="0.01" value={scenario.turnout * 100} onChange={(event) => onChange({ ...scenario, turnout: Number(event.target.value) / 100 })} /></label><p className="small muted">Przy proporcjonalnej zmianie frekwencji w każdym okręgu liczba mandatów się nie zmienia. Zmienia się liczba głosujących.</p><p className="small">Głosujący: <strong data-testid="expected-ballots">{number(historicalData.totals.ballots2023 * scenario.turnout / baselineTurnout)}</strong> · ważne głosy: {number(historicalData.totals.validVotes2023 * scenario.turnout / baselineTurnout)}. Limit suwaka {maxTurnoutSliderPct}% wynika z okręgu 19.</p><button className="small" onClick={() => onChange({ ...scenario, turnout: baselineTurnout })}>Przywróć dokładną frekwencję 2023</button></details>
-    <details><summary>Nazwy podmiotów i grup scenariusza</summary><label className="field">Nazwa scenariusza<input defaultValue={scenario.name} key={scenario.name} onBlur={(event) => { if (event.target.value.trim()) onChange({ ...scenario, name: event.target.value.trim() }); }} /></label>{(['L', 'R', 'C'] as Family[]).map((family) => <label className="field" key={family}>Grupa {family}<input defaultValue={scenario.familyLabels[family]} key={scenario.familyLabels[family]} onBlur={(event) => { if (event.target.value.trim()) onChange({ ...scenario, familyLabels: { ...scenario.familyLabels, [family]: event.target.value.trim() } }); }} /></label>)}{scenario.entities.map((entity) => <label className="field" key={entity.id}>{shortName(entity.id)}<input defaultValue={entity.label} key={entity.label} onBlur={(event) => { if (event.target.value.trim()) changeEntity(entity.id, { label: event.target.value.trim() }); }} /></label>)}</details>
-    <details><summary>Eksperyment: równy podział w jednej grupie</summary><p className="small muted">Zaznacz co najmniej dwa aktywne podmioty jednej grupy. Ich łączne poparcie rozdzielimy równo. To eksperyment syntetyczny, nie wynik sondażu.</p><div className="inline">{scenario.entities.filter((entity) => entity.active && !entity.locked).map((entity) => <label className="entity-chip" key={entity.id}><input type="checkbox" checked={equalIds.includes(entity.id)} onChange={(event) => setEqualIds(event.target.checked ? [...equalIds, entity.id] : equalIds.filter((id) => id !== entity.id))} />{shortName(entity.id)}</label>)}</div><button className="small" style={{ marginTop: 10 }} onClick={() => attempt(() => equalizeSupport(scenario, equalIds), `Eksperyment syntetyczny: równy podział między ${equalIds.length} podmiotów.`)}>Podziel między {equalIds.length} podmioty</button></details></div>
-  </section>;
+  const supportKey = scenario.entities
+    .map((entity) => `${entity.id}:${entity.supportUnits}`)
+    .join('|');
+  const attempt = (operation: () => Scenario, notice?: string) => {
+    try {
+      onChange(operation(), notice);
+    } catch (error) {
+      onError(errorText(error));
+    }
+  };
+  const setSupport = (id: string, value: string): boolean => {
+    try {
+      const units = parseSupport(value);
+      if (scenario.entities.find((entity) => entity.id === id)?.supportUnits === units) return true;
+      const donors = donorMode === 'selected' ? [donor] : defaultDonors(scenario, id, donorMode);
+      const next = redistributeSupport(scenario, id, units, donors);
+      const changed = next.entities.filter(
+        (entity) =>
+          entity.supportUnits !==
+          scenario.entities.find((old) => old.id === entity.id)?.supportUnits,
+      );
+      setChangedIds(changed.map((entity) => entity.id));
+      setHighlightKey(
+        next.entities.map((entity) => `${entity.id}:${entity.supportUnits}`).join('|'),
+      );
+      onChange(
+        next,
+        `Zmiana poparcia: ${changed.map((entity) => `${shortName(entity.id)} ${formatSupport(scenario.entities.find((old) => old.id === entity.id)!.supportUnits)} → ${formatSupport(entity.supportUnits)}%`).join('; ')}. Pula: ${donorMode === 'all' ? 'pozostałe odblokowane podmioty' : donorMode === 'family' ? 'ta sama grupa (suma stała)' : shortName(donor)}.`,
+      );
+      return true;
+    } catch (cause) {
+      onError(errorText(cause));
+      return false;
+    }
+  };
+  const changeEntity = (id: string, patch: Partial<Entity>) =>
+    onChange({
+      ...scenario,
+      entities: scenario.entities.map((entity) =>
+        entity.id === id ? { ...entity, ...patch } : entity,
+      ),
+    });
+  return (
+    <section className="panel" aria-labelledby="support-heading">
+      <div className="panel-heading">
+        <div>
+          <span className="section-no">01 / ELEKTORAT</span>
+          <h2 id="support-heading">Poparcie w kraju</h2>
+          <p>Ten sam elektorat. Twoje założenia.</p>
+        </div>
+        <span className="badge">100% zachowane</span>
+      </div>
+      <div className="donor-bar">
+        <label className="field">
+          Zmianę finansują
+          <select
+            aria-label="Zmianę finansują"
+            value={donorMode}
+            onChange={(event) => setDonorMode(event.target.value as typeof donorMode)}
+          >
+            <option value="all">Wszyscy pozostali odblokowani</option>
+            <option value="family">Tylko ta sama grupa — stała suma</option>
+            <option value="selected">Jeden wybrany dawca</option>
+          </select>
+        </label>
+        {donorMode === 'selected' && (
+          <label className="field" style={{ marginTop: 8 }}>
+            Wybrany dawca
+            <select
+              aria-label="Wybrany dawca"
+              value={donor}
+              onChange={(event) => setDonor(event.target.value)}
+            >
+              {scenario.entities
+                .filter((entity) => entity.active && !entity.locked)
+                .map((entity) => (
+                  <option value={entity.id} key={entity.id}>
+                    {entity.label}
+                  </option>
+                ))}
+            </select>
+          </label>
+        )}
+        <p>
+          Odejmujemy lub dodajemy poparcie proporcjonalnie w wybranej puli. Reszta pozostaje stała;
+          wartości zaokrąglamy dokładnie do 0,000001 p.p.
+        </p>
+      </div>
+      {(['L', 'R', 'C'] as Family[]).map((family) => (
+        <div className="entity-group" key={family}>
+          <header className="entity-group-heading">
+            <h3
+              style={{
+                color: `var(--${family === 'L' ? 'left' : family === 'R' ? 'right' : 'center'})`,
+              }}
+            >
+              {scenario.familyLabels[family]}
+            </h3>
+            <span>
+              {percent(
+                scenario.entities
+                  .filter((entity) => entity.family === family)
+                  .reduce((sum, entity) => sum + entity.supportUnits, 0) / 1e6,
+              )}
+            </span>
+          </header>
+          {scenario.entities
+            .filter((entity) => entity.family === family)
+            .map((entity) => (
+              <SupportRow
+                key={entity.id}
+                entity={entity}
+                changed={highlightKey === supportKey && changedIds.includes(entity.id)}
+                onCommit={(value) => setSupport(entity.id, value)}
+                onLock={() => changeEntity(entity.id, { locked: !entity.locked })}
+                onActive={() =>
+                  attempt(
+                    () => setEntityActive(scenario, entity.id, !entity.active),
+                    'Zmieniono aktywność. Aktywacja nie przydziela poparcia: wybierz dawców i ustaw udział. Sprawdź wybór sojuszu parlamentarnego.',
+                  )
+                }
+                onPpsTransfer={() =>
+                  attempt(
+                    () =>
+                      redistributeSupport(
+                        setEntityActive(scenario, 'pps', true),
+                        'pps',
+                        1_000_000,
+                        ['nl'],
+                      ),
+                    'Eksperyment syntetyczny: przeniesiono 1 p.p. z NL do PPS.',
+                  )
+                }
+              />
+            ))}
+        </div>
+      ))}
+      <div className="residual">
+        <div>
+          Głosy poza dziesięcioma podmiotami
+          <small>Unia Centrum 0,15% + inne 0,36% · stała reszta</small>
+        </div>
+        <strong>0,51%</strong>
+      </div>
+      <div className="total">
+        <span>Łącznie, z resztą</span>
+        <span>
+          {percent(
+            (scenario.entities.reduce((sum, entity) => sum + entity.supportUnits, 0) +
+              scenario.residual.supportUnits) /
+              1e6,
+            6,
+          )}{' '}
+          ✓
+        </span>
+      </div>
+      <div className="config-panel">
+        <details>
+          <summary>Geografia i frekwencja</summary>
+          <label className="field">
+            Rozkład głosów
+            <select
+              value={scenario.geographyMode}
+              onChange={(event) =>
+                onChange({
+                  ...scenario,
+                  geographyMode: event.target.value as Scenario['geographyMode'],
+                })
+              }
+            >
+              <option value="historical">Profile okręgowe 2023 + kalibracja</option>
+              <option value="uniform">Jednakowe poparcie w każdym okręgu</option>
+            </select>
+          </label>
+          <label className="field">
+            Frekwencja: {percent(scenario.turnout * 100)}
+            <input
+              aria-label="Frekwencja"
+              type="range"
+              min="0.01"
+              max={maxTurnoutSliderPct}
+              step="0.01"
+              value={scenario.turnout * 100}
+              onChange={(event) =>
+                onChange({ ...scenario, turnout: Number(event.target.value) / 100 })
+              }
+            />
+          </label>
+          <p className="small muted">
+            Przy proporcjonalnej zmianie frekwencji w każdym okręgu liczba mandatów się nie zmienia.
+            Zmienia się liczba głosujących.
+          </p>
+          <p className="small">
+            Głosujący:{' '}
+            <strong data-testid="expected-ballots">
+              {number((historicalData.totals.ballots2023 * scenario.turnout) / baselineTurnout)}
+            </strong>{' '}
+            · ważne głosy:{' '}
+            {number((historicalData.totals.validVotes2023 * scenario.turnout) / baselineTurnout)}.
+            Limit suwaka {maxTurnoutSliderPct}% wynika z okręgu 19.
+          </p>
+          <button
+            className="small"
+            onClick={() => onChange({ ...scenario, turnout: baselineTurnout })}
+          >
+            Przywróć dokładną frekwencję 2023
+          </button>
+        </details>
+        <details>
+          <summary>Nazwy podmiotów i grup scenariusza</summary>
+          <label className="field">
+            Nazwa scenariusza
+            <input
+              defaultValue={scenario.name}
+              key={scenario.name}
+              onBlur={(event) => {
+                if (event.target.value.trim())
+                  onChange({ ...scenario, name: event.target.value.trim() });
+              }}
+            />
+          </label>
+          {(['L', 'R', 'C'] as Family[]).map((family) => (
+            <label className="field" key={family}>
+              Grupa {family}
+              <input
+                defaultValue={scenario.familyLabels[family]}
+                key={scenario.familyLabels[family]}
+                onBlur={(event) => {
+                  if (event.target.value.trim())
+                    onChange({
+                      ...scenario,
+                      familyLabels: {
+                        ...scenario.familyLabels,
+                        [family]: event.target.value.trim(),
+                      },
+                    });
+                }}
+              />
+            </label>
+          ))}
+          {scenario.entities.map((entity) => (
+            <label className="field" key={entity.id}>
+              {shortName(entity.id)}
+              <input
+                defaultValue={entity.label}
+                key={entity.label}
+                onBlur={(event) => {
+                  if (event.target.value.trim())
+                    changeEntity(entity.id, { label: event.target.value.trim() });
+                }}
+              />
+            </label>
+          ))}
+        </details>
+        <details>
+          <summary>Eksperyment: równy podział w jednej grupie</summary>
+          <p className="small muted">
+            Zaznacz co najmniej dwa aktywne podmioty jednej grupy. Ich łączne poparcie rozdzielimy
+            równo. To eksperyment syntetyczny, nie wynik sondażu.
+          </p>
+          <div className="inline">
+            {scenario.entities
+              .filter((entity) => entity.active && !entity.locked)
+              .map((entity) => (
+                <label className="entity-chip" key={entity.id}>
+                  <input
+                    type="checkbox"
+                    checked={equalIds.includes(entity.id)}
+                    onChange={(event) =>
+                      setEqualIds(
+                        event.target.checked
+                          ? [...equalIds, entity.id]
+                          : equalIds.filter((id) => id !== entity.id),
+                      )
+                    }
+                  />
+                  {shortName(entity.id)}
+                </label>
+              ))}
+          </div>
+          <button
+            className="small"
+            style={{ marginTop: 10 }}
+            onClick={() =>
+              attempt(
+                () => equalizeSupport(scenario, equalIds),
+                `Eksperyment syntetyczny: równy podział między ${equalIds.length} podmiotów.`,
+              )
+            }
+          >
+            Podziel między {equalIds.length} podmioty
+          </button>
+        </details>
+      </div>
+    </section>
+  );
 }

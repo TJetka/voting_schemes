@@ -8,17 +8,25 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI
+    ? [['list'], ['github'], ['html', { open: 'never' }]]
+    : [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL, trace: 'retain-on-failure', screenshot: 'only-on-failure',
-    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {},
+    baseURL,
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+      : {},
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: external ? undefined : {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
-    url: baseURL,
-    env: { BASE_PATH: '/voting_schemes/' },
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: external
+    ? undefined
+    : {
+        command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+        url: baseURL,
+        env: { BASE_PATH: '/voting_schemes/' },
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
+      },
 });

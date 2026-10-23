@@ -75,11 +75,22 @@ export interface HistoricalData {
     invalidVotes2023: number;
     seats: number;
   };
-  committees: { id: string; label: string; committeeType: CommitteeType; minorityExempt: boolean }[];
+  committees: {
+    id: string;
+    label: string;
+    committeeType: CommitteeType;
+    minorityExempt: boolean;
+  }[];
   districts: District[];
-  officialSeats: { national: Record<string, number>; districts: Record<string, Record<string, number>> };
+  officialSeats: {
+    national: Record<string, number>;
+    districts: Record<string, Record<string, number>>;
+  };
 }
-export interface SeatBounds { lower: number; upper: number }
+export interface SeatBounds {
+  lower: number;
+  upper: number;
+}
 export interface Eligibility {
   eligible: boolean;
   thresholdPct: number;

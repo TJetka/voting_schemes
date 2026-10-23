@@ -3,15 +3,43 @@ import { mergeEntities, scenarioFingerprint } from '../src/model/coalitions';
 import { baselineTurnout } from '../src/model/data';
 import * as engine from '../src/model/engine';
 import { evaluateScenario } from '../src/model/engine';
-import { exportResultsCsv, parseScenario, scenarioFromHash, scenarioId, scenarioToHash, serializeScenario } from '../src/model/persistence';
+import {
+  exportResultsCsv,
+  parseScenario,
+  scenarioFromHash,
+  scenarioId,
+  scenarioToHash,
+  serializeScenario,
+} from '../src/model/persistence';
 import { createDefaultScenario } from '../src/model/presets';
-import { axisValues, heatCell, scenarioAt, summarizePoint, sweepValues, transitionBetween, validateHeatAxes, type Axis } from '../src/model/sensitivity';
+import {
+  axisValues,
+  heatCell,
+  scenarioAt,
+  summarizePoint,
+  sweepValues,
+  transitionBetween,
+  validateHeatAxes,
+  type Axis,
+} from '../src/model/sensitivity';
 import { isCurrentResponse } from '../src/workers/protocol';
 import { validateScenario } from '../src/model/validation';
 import type { Scenario } from '../src/model/types';
 
-const defaultAxis: Axis = { targetId: 'razem', donorId: 'nl', min: 4_900_000, max: 5_100_000, step: 10_000 };
-const yAxis: Axis = { targetId: 'rozwoj', donorId: 'pis', min: 4_900_000, max: 5_100_000, step: 10_000 };
+const defaultAxis: Axis = {
+  targetId: 'razem',
+  donorId: 'nl',
+  min: 4_900_000,
+  max: 5_100_000,
+  step: 10_000,
+};
+const yAxis: Axis = {
+  targetId: 'rozwoj',
+  donorId: 'pis',
+  min: 4_900_000,
+  max: 5_100_000,
+  step: 10_000,
+};
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -31,8 +59,12 @@ describe('sensitivity paths and thresholds', () => {
     expect(new Set(values).size).toBe(values.length);
     expect(values).toEqual(expect.arrayContaining([4_999_999, 5_000_000, 5_000_001]));
     expect(thresholds.has(5_000_000)).toBe(true);
-    expect(evaluateScenario(scenarioAt(scenario, defaultAxis, 4_999_999)).eligibility.razem.eligible).toBe(false);
-    expect(evaluateScenario(scenarioAt(scenario, defaultAxis, 5_000_000)).eligibility.razem.eligible).toBe(true);
+    expect(
+      evaluateScenario(scenarioAt(scenario, defaultAxis, 4_999_999)).eligibility.razem.eligible,
+    ).toBe(false);
+    expect(
+      evaluateScenario(scenarioAt(scenario, defaultAxis, 5_000_000)).eligibility.razem.eligible,
+    ).toBe(true);
   });
 
   it('detects a donor-list threshold and does not falsely label inactive fallback thresholds', () => {
@@ -40,7 +72,11 @@ describe('sensitivity paths and thresholds', () => {
     const donor = sweepValues(scenario, { ...defaultAxis, min: 7_900_000, max: 7_920_000 });
     expect(donor.values).toEqual(expect.arrayContaining([7_909_999, 7_910_000, 7_910_001]));
     expect(donor.thresholds.has(7_910_000)).toBe(true);
-    const inactiveFallback = sweepValues(scenario, { ...defaultAxis, min: 2_990_000, max: 3_010_000 });
+    const inactiveFallback = sweepValues(scenario, {
+      ...defaultAxis,
+      min: 2_990_000,
+      max: 3_010_000,
+    });
     expect(inactiveFallback.thresholds.has(3_000_000)).toBe(false);
   });
 
@@ -59,14 +95,25 @@ describe('sensitivity paths and thresholds', () => {
     const scenario = createDefaultScenario();
     const before = structuredClone(scenario);
     const values = [4_999_999, 5_000_000, 5_000_001, 5_140_000, 6_123_457];
-    const forward = new Map(values.map((value) => [value, scenarioAt(scenario, defaultAxis, value)]));
-    const reverse = new Map([...values].reverse().map((value) => [value, scenarioAt(scenario, defaultAxis, value)]));
+    const forward = new Map(
+      values.map((value) => [value, scenarioAt(scenario, defaultAxis, value)]),
+    );
+    const reverse = new Map(
+      [...values].reverse().map((value) => [value, scenarioAt(scenario, defaultAxis, value)]),
+    );
     for (const value of values) {
       expect(forward.get(value)).toEqual(reverse.get(value));
       const sample = forward.get(value)!;
-      expect(sample.entities.reduce((sum, entity) => sum + entity.supportUnits, sample.residual.supportUnits)).toBe(100_000_000);
+      expect(
+        sample.entities.reduce(
+          (sum, entity) => sum + entity.supportUnits,
+          sample.residual.supportUnits,
+        ),
+      ).toBe(100_000_000);
       expect(sample.entities.find((entity) => entity.id === 'razem')!.supportUnits).toBe(value);
-      expect(sample.entities.find((entity) => entity.id === 'nl')!.supportUnits).toBe(12_910_000 - value);
+      expect(sample.entities.find((entity) => entity.id === 'nl')!.supportUnits).toBe(
+        12_910_000 - value,
+      );
       expect(sample.lists).toEqual(scenario.lists);
     }
     expect(scenario).toEqual(before);
@@ -77,7 +124,9 @@ describe('sensitivity paths and thresholds', () => {
     const zero = scenarioAt(scenario, defaultAxis, 0);
     expect(zero.entities.find((entity) => entity.id === 'razem')!.active).toBe(true);
     expect(zero.lists).toEqual(scenario.lists);
-    expect(() => sweepValues(scenario, { ...defaultAxis, max: 13_000_000, step: 10_000 })).toThrow(/Zakres/);
+    expect(() => sweepValues(scenario, { ...defaultAxis, max: 13_000_000, step: 10_000 })).toThrow(
+      /Zakres/,
+    );
   });
 
   it('reports exact eligibility transitions, districts and actual conserved seat transfers', () => {
@@ -92,7 +141,8 @@ describe('sensitivity paths and thresholds', () => {
     expect(transition.exactThreshold).toBe(true);
     expect(transition.gainedEligibility).toContain('razem');
     expect(transition.districts.length).toBeGreaterThan(0);
-    for (const district of transition.districts) expect(Object.values(district.transfers).reduce((sum, seats) => sum + seats, 0)).toBe(0);
+    for (const district of transition.districts)
+      expect(Object.values(district.transfers).reduce((sum, seats) => sum + seats, 0)).toBe(0);
     expect(transition.before).toEqual(beforePoint.alliance);
     expect(transition.after).toEqual(afterPoint.alliance);
     expect(transitionBetween(after, after, afterPoint, afterPoint)).toBeNull();
@@ -124,7 +174,14 @@ describe('two-dimensional experiments', () => {
     expect(cell.bounds).toBeNull();
     expect(cell.error).toMatch(/pula/);
     expect(cell.x).toBe(13_000_000);
-    const overlap = heatCell(scenario, defaultAxis, { ...yAxis, donorId: 'nl' }, 5_000_000, 5_000_000, 'L');
+    const overlap = heatCell(
+      scenario,
+      defaultAxis,
+      { ...yAxis, donorId: 'nl' },
+      5_000_000,
+      5_000_000,
+      'L',
+    );
     expect(overlap.bounds).toBeNull();
     expect(overlap.error).toMatch(/rozłączne/);
   });
@@ -146,7 +203,12 @@ describe('reproducible scenario state', () => {
     scenario.notes = ['{"b":2,"a":1}', 'Założenie drugie'];
     function reverseKeys(value: unknown): unknown {
       if (Array.isArray(value)) return value.map(reverseKeys);
-      if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).reverse().map(([key, child]) => [key, reverseKeys(child)]));
+      if (typeof value === 'object' && value !== null)
+        return Object.fromEntries(
+          Object.entries(value)
+            .reverse()
+            .map(([key, child]) => [key, reverseKeys(child)]),
+        );
       return value;
     }
     const reordered = reverseKeys(scenario) as Scenario;
@@ -161,21 +223,47 @@ describe('reproducible scenario state', () => {
     expect(imported.residual).toEqual(scenario.residual);
     expect(imported.notes).toEqual(scenario.notes);
     expect(scenarioFingerprint(imported)).toBe(scenarioFingerprint(scenario));
-    expect(evaluateScenario(imported).nationalListSeats).toEqual(evaluateScenario(scenario).nationalListSeats);
-    expect(scenarioFingerprint({ ...scenario, notes: [...scenario.notes].reverse() })).not.toBe(scenarioFingerprint(scenario));
-    expect(scenarioFingerprint({ ...scenario, notes: ['{"a":1,"b":2}', 'Założenie drugie'] })).not.toBe(scenarioFingerprint(scenario));
+    expect(evaluateScenario(imported).nationalListSeats).toEqual(
+      evaluateScenario(scenario).nationalListSeats,
+    );
+    expect(scenarioFingerprint({ ...scenario, notes: [...scenario.notes].reverse() })).not.toBe(
+      scenarioFingerprint(scenario),
+    );
+    expect(
+      scenarioFingerprint({ ...scenario, notes: ['{"a":1,"b":2}', 'Założenie drugie'] }),
+    ).not.toBe(scenarioFingerprint(scenario));
   });
 
   it('rejects unrecognized nested fields and returns independent known-field records', () => {
     const scenario = createDefaultScenario();
     const malformed = [
-      { ...scenario, entities: scenario.entities.map((entity, index) => index === 0 ? { ...entity, extraVotes: 100 } : entity) },
-      { ...scenario, lists: scenario.lists.map((list, index) => index === 0 ? { ...list, predictedSeats: 460 } : list) },
+      {
+        ...scenario,
+        entities: scenario.entities.map((entity, index) =>
+          index === 0 ? { ...entity, extraVotes: 100 } : entity,
+        ),
+      },
+      {
+        ...scenario,
+        lists: scenario.lists.map((list, index) =>
+          index === 0 ? { ...list, predictedSeats: 460 } : list,
+        ),
+      },
       { ...scenario, residual: { ...scenario.residual, extra: 'unexpected' } },
-      { ...scenario, residual: { ...scenario.residual, components: scenario.residual.components.map((component) => ({ ...component, editable: true })) } },
+      {
+        ...scenario,
+        residual: {
+          ...scenario.residual,
+          components: scenario.residual.components.map((component) => ({
+            ...component,
+            editable: true,
+          })),
+        },
+      },
       { ...scenario, familyLabels: { ...scenario.familyLabels, X: 'Unknown' } },
     ];
-    for (const input of malformed) expect(() => parseScenario(JSON.stringify(input))).toThrow(/nieznane pole/);
+    for (const input of malformed)
+      expect(() => parseScenario(JSON.stringify(input))).toThrow(/nieznane pole/);
     const normalized = validateScenario(scenario);
     expect(normalized).toEqual(scenario);
     normalized.entities[0].label = 'Edited';
@@ -190,7 +278,10 @@ describe('reproducible scenario state', () => {
     const scenario = mergeEntities(createDefaultScenario(), ['nl', 'razem'], 'ordinary');
     scenario.name = 'Zażółć gęślą jaźń · 🗳️';
     scenario.entities[0].label = '„Łódź” <tekst, nie HTML> 🇵🇱';
-    scenario.notes = Array.from({ length: 20 }, (_, index) => `Notatka ${index}: łęść \"cytat\" 🗳️`);
+    scenario.notes = Array.from(
+      { length: 20 },
+      (_, index) => `Notatka ${index}: łęść \"cytat\" 🗳️`,
+    );
     scenario.allianceSelection = ['nl+razem'];
     const json = parseScenario(serializeScenario(scenario));
     const hash = scenarioFromHash(scenarioToHash(scenario));
@@ -198,7 +289,9 @@ describe('reproducible scenario state', () => {
     expect(hash).toEqual(scenario);
     expect(scenarioId(json)).toBe(scenarioId(scenario));
     expect(scenarioFingerprint(hash)).toBe(scenarioFingerprint(scenario));
-    expect(evaluateScenario(json).nationalListSeats).toEqual(evaluateScenario(scenario).nationalListSeats);
+    expect(evaluateScenario(json).nationalListSeats).toEqual(
+      evaluateScenario(scenario).nationalListSeats,
+    );
     expect(evaluateScenario(hash).allianceSeats).toEqual(evaluateScenario(scenario).allianceSeats);
     expect(Object.hasOwn(json, 'provenance')).toBe(false);
   });
@@ -213,17 +306,27 @@ describe('reproducible scenario state', () => {
 
   it('rejects incompatible versions, tampered inputs and serialized derived results', () => {
     const scenario = createDefaultScenario();
-    expect(() => parseScenario(JSON.stringify({ ...scenario, schemaVersion: 2 }))).toThrow(/wersja/);
-    expect(() => parseScenario(JSON.stringify({ ...scenario, dataVersion: 'unavailable' }))).toThrow(/wersja/);
-    expect(() => parseScenario(JSON.stringify({ ...scenario, result: { campSeats: { L: 460 } } }))).toThrow(/Nieznane pole/);
+    expect(() => parseScenario(JSON.stringify({ ...scenario, schemaVersion: 2 }))).toThrow(
+      /wersja/,
+    );
+    expect(() =>
+      parseScenario(JSON.stringify({ ...scenario, dataVersion: 'unavailable' })),
+    ).toThrow(/wersja/);
+    expect(() =>
+      parseScenario(JSON.stringify({ ...scenario, result: { campSeats: { L: 460 } } })),
+    ).toThrow(/Nieznane pole/);
     const duplicate = structuredClone(scenario);
     duplicate.lists.push(duplicate.lists[0]);
     expect(() => parseScenario(JSON.stringify(duplicate))).toThrow();
     expect(() => parseScenario('{broken')).toThrow(/JSON/);
     expect(() => scenarioFromHash('#s=💥')).toThrow(/link/);
     expect(() => scenarioFromHash('#s=ww')).toThrow(/odtworzyć/);
-    const incompatible = '#s=' + btoa(JSON.stringify({ ...scenario, modelVersion: '2' }).replace(/[^\x00-\x7f]/g, '?'));
-    expect(() => scenarioFromHash(incompatible.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_'))).toThrow(/wersja/);
+    const incompatible =
+      '#s=' +
+      btoa(JSON.stringify({ ...scenario, modelVersion: '2' }).replace(/[^\x00-\x7f]/g, '?'));
+    expect(() =>
+      scenarioFromHash(incompatible.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')),
+    ).toThrow(/wersja/);
   });
 
   it('enforces size limits in UTF-8 bytes and never emits an unreadable oversized hash', () => {
@@ -241,9 +344,29 @@ describe('reproducible scenario state', () => {
     const result = evaluateScenario(scenario);
     const csv = exportResultsCsv(scenario, result);
     expect(csv.startsWith('\uFEFF')).toBe(true);
-    const rows = csv.slice(1).split('\r\n').map((line) => JSON.parse('[' + line + ']') as (string | number)[]);
+    const rows = csv
+      .slice(1)
+      .split('\r\n')
+      .map((line) => JSON.parse('[' + line + ']') as (string | number)[]);
     const header = rows[0] as string[];
-    expect(header).toEqual(['scenario_id', 'model_version', 'data_version', 'geography', 'turnout', 'district_id', 'list_id', 'members', 'committee_type', 'national_support_pct', 'eligible', 'threshold_pct', 'seats_lower', 'seats_upper', 'expected_votes', 'status']);
+    expect(header).toEqual([
+      'scenario_id',
+      'model_version',
+      'data_version',
+      'geography',
+      'turnout',
+      'district_id',
+      'list_id',
+      'members',
+      'committee_type',
+      'national_support_pct',
+      'eligible',
+      'threshold_pct',
+      'seats_lower',
+      'seats_upper',
+      'expected_votes',
+      'status',
+    ]);
     expect(rows).toHaveLength(1 + scenario.lists.length * 42);
     expect(rows.every((row) => row.length === header.length)).toBe(true);
     const find = (district: string) => rows.find((row) => row[5] === district && row[6] === 'ko')!;
@@ -251,7 +374,10 @@ describe('reproducible scenario state', () => {
     expect(Number(local[14])).toBeCloseTo(result.districtAllocations[0].votesByList.ko * 0.75, 8);
     expect(Number(local[12])).toBe(result.districtAllocations[0].seatsByList.ko);
     const national = find('national');
-    expect(Number(national[14])).toBeCloseTo(result.districtAllocations.reduce((sum, district) => sum + district.votesByList.ko, 0) * 0.75, 7);
+    expect(Number(national[14])).toBeCloseTo(
+      result.districtAllocations.reduce((sum, district) => sum + district.votesByList.ko, 0) * 0.75,
+      7,
+    );
     expect(Number(national[12])).toBe(195);
     expect(national[0]).toBe(scenarioId(scenario));
     expect(national[1]).toBe(scenario.modelVersion);
@@ -264,6 +390,8 @@ describe('worker response identity', () => {
     expect(isCurrentResponse(response, 7, 'scenario-new')).toBe(true);
     expect(isCurrentResponse(response, 8, 'scenario-new')).toBe(false);
     expect(isCurrentResponse(response, 7, 'scenario-edited')).toBe(false);
-    expect(isCurrentResponse({ requestId: 6, fingerprint: 'scenario-old' }, 7, 'scenario-new')).toBe(false);
+    expect(
+      isCurrentResponse({ requestId: 6, fingerprint: 'scenario-old' }, 7, 'scenario-new'),
+    ).toBe(false);
   });
 });
