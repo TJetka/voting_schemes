@@ -269,6 +269,7 @@ export default function Exploration({ scenario, onOpenScenario, onInspectDistric
         }
       };
       instance.onerror = (event) => {
+        if (!isCurrentResponse({ requestId, fingerprint }, request.current, fingerprint)) return;
         setError(
           `Błąd obliczeń: ${event.message || 'Nie można uruchomić modułu obliczeń. Odśwież stronę po aktualizacji aplikacji.'}`,
         );
