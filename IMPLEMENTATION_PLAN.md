@@ -38,7 +38,7 @@ Implement versioned JSON/CSV export, validated JSON import, URL hashes, local pe
 
 ## Validation record
 
-Implementation gates 0–4 are complete. Gate 5 source, production build and automated delivery workflow are complete; automated browser validation passes; Pages publication is blocked only by repository Pages settings.
+Implementation gates 0–4 are complete. Gate 5 source, production build and automated delivery workflow are complete; automated browser validation passes; Pages is enabled and the final deployment is in progress.
 
 Verified on 23 October 2026:
 
@@ -48,9 +48,9 @@ Verified on 23 October 2026:
 - Direct native Chrome acceptance checks pass: keyboard merge, forbidden L–C–R combination, centre 8%/5%, donor conservation, turnout invariance, historical replay, JSON import, share and refresh, district quotient explanation and 390 CSS pixel layout without overflow.
 - Browser Worker measurements on this macOS ARM64 desktop: default 2,385 partitions in 2.50 s; default 21×21 heatmap in 0.86 s. Both remain cancellable and preserve declared resolution. These are observations, not timing assertions in tests.
 - Exhaustive result replay reproduced 266/194/0 in the manual builder. The 1D transition log correctly identifies 4.999999% → 5% eligibility for Razem and opens affected district allocations.
-- Playwright contains 13 acceptance journeys, including ordinary-fragment navigation and malformed-share handling. Local headless Chromium launch is restricted by the host sandbox; native browser checks above remain separate evidence. GitHub Actions runs the automated suite under the repository subpath. Its validation job passed all original 11 journeys, the full unit/importer suite, formatting, type checking and production build in [run 39925364723](https://github.com/TJetka/voting_schemes/actions/runs/39925364723); the final two navigation regressions are included in subsequent runs.
+- Playwright contains 13 acceptance journeys, including ordinary-fragment navigation and malformed-share handling. Local headless Chromium launch is restricted by the host sandbox; native browser checks above remain separate evidence. GitHub Actions runs the automated suite under the repository subpath. Its validation job passed all 13 journeys, the full unit/importer suite, formatting, type checking and production build in [run 39925872372](https://github.com/TJetka/voting_schemes/actions/runs/39925872372).
 - The first CI attempt passed all unit/importer checks but failed installing Chromium while `ubuntu-latest` migrated to Ubuntu 26. Delivery now pins Ubuntu 24.04; the dependency stack is updated and locked.
 
 The source repository is https://github.com/TJetka/voting_schemes. The workspace protects `.git`, so this session used Git metadata at `/tmp/coalition-git/.git` with this workspace as its work tree. A normal clone of the pushed repository has standard Git metadata.
 
-The deployment job reached `actions/configure-pages` and returned “Get Pages site failed … verify that the repository has Pages enabled and configured to build using GitHub Actions.” GitHub reports `has_pages: false`. Required external step: Settings → Pages → Source → GitHub Actions, then rerun the failed deployment job (or dispatch the workflow). SSH pushing is available; repository settings require a signed-in GitHub session. No site deployment is claimed.
+The initial deployment was blocked because Pages was disabled. The repository owner enabled GitHub Actions as the Pages source; GitHub now reports `has_pages: true`. A subsequent runner stalled during the browser download, so the delivery workflow uses Playwright’s smaller headless-only Chromium download and a five-minute installation timeout. The final workflow will publish the validated build to https://tjetka.github.io/voting_schemes/; publication is reported only after checking that URL.

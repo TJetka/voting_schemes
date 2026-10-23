@@ -35,7 +35,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run format:check
       - run: npm test
-      - run: npx playwright install --with-deps chromium
+      - name: Install headless Chromium and system libraries
+        timeout-minutes: 5
+        run: npx playwright install --with-deps --only-shell chromium
       - name: Browser acceptance under repository subpath
         run: npm run test:e2e
       - name: Build for deployment destination
