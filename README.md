@@ -66,7 +66,7 @@ BASE_PATH=/voting_schemes/ npm run build
 npm run preview -- --base=/voting_schemes/
 ```
 
-The expected public address is `https://tjetka.github.io/voting_schemes/`; this is only a destination until a successful deployment is verified. Hash-based scenario links preserve the repository path and work on refresh. For a root site or custom domain set the repository variable `BASE_PATH` to `/`.
+Live application: **https://tjetka.github.io/voting_schemes/** (deployment and public application verified on 23 October 2026). Hash-based scenario links preserve the repository path and work on refresh. For a root site or custom domain set the repository variable `BASE_PATH` to `/`.
 
 Deployment follows [Vite’s static deployment guidance](https://vite.dev/guide/static-deploy.html) and [GitHub’s Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
