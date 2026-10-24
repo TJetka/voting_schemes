@@ -14,6 +14,21 @@
 
 15 wierszy R × 52 kolumn L+C = 780 kompletnych układów dla każdej polityki progowej. Nie ma połączeń C z R. Nieaktywny PPS pozostaje poza podziałami. Wspólne listy mają jednolicie próg 8% lub 5%; osobne partie zawsze 5%. Nie badamy wszystkich niezależnych kombinacji form prawnych w jednej macierzy.
 
+### Najpierw cztery skrajne układy
+
+W każdej komórce podajemy mandaty obu bloków. Czytaj w dół, aby zobaczyć efekt połączenia R przy tym samym układzie L+C; w prawo — efekt połączenia L+C przy tym samym układzie R.
+
+| Układ R ↓ / Układ L+C → | L+C osobno | L+C razem |
+| --- | --- | --- |
+| R osobno | L+C 226 : R 234 | L+C 264 : R 196 |
+| R razem | L+C 194 : R 266 | L+C 233 : R 227 |
+
+Połączenie R: przy osobnych listach L+C wynik R zmienia się 234 → 266 (zmiana o 32) mandatów; przy jednej liście L+C: 196 → 227 (zmiana o 31) mandatów.
+
+Połączenie L+C: przy osobnych listach R wynik L+C zmienia się 226 → 264 (zmiana o 38) mandatów; przy jednej liście R: 194 → 233 (zmiana o 39) mandatów.
+
+Kolor pełnej macierzy oznacza tylko większość, a liczba w komórce — mandaty L+C. Ten sam kolor nie oznacza tego samego wyniku: R może odzyskać wiele mandatów, pozostając poniżej 231. Maksymalizacja liczby mandatów i zdobycie większości to dwa różne warunki.
+
 | Wspólne listy | Zakres mandatów L+C | Większość L+C | Większość R | Brak większości | Nierozstrzygnięte |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Koalicje 8% | 194–264 | 357 | 383 | 40 | 0 |
@@ -103,7 +118,7 @@ Przesunięcia par badamy nominalnie co 0,25 p.p., a podział A/B co 0,5 p.p., li
 
 Model 1.1.0; analiza 1.0.0; dane pkw-2023-v1; geografia family; składnik jednorodny 0.01.
 
-Wygenerowano: 2026-10-24T08:36:03.689Z. Kod: 946d9f87710c682d35500f2664c54e1a40486301; zmiany robocze przy generowaniu: nie. SHA-256 źródeł analizy: 12b422d3b71b7d9c8791113d5d802b851ac248e0cd75f81be962b13cdf8e8951. SHA-256 danych PKW: 48c9842178c202a1ad1cbc37caa9ac931ed4e47970c82d07c91fac11ae7b2a0a. Model deterministyczny, ziarno losowe: nie dotyczy.
+Wygenerowano: 2026-10-24T09:56:50.765Z. Kod: 0cad68e4cd5b6154fc3ee210c289dcd0ca2ac02d; zmiany robocze przy generowaniu: nie. SHA-256 źródeł analizy: a3c69557f0e05768fedc3b5c065f44017965cdf35079546ac2943fa181317839. SHA-256 danych PKW: 48c9842178c202a1ad1cbc37caa9ac931ed4e47970c82d07c91fac11ae7b2a0a. Model deterministyczny, ziarno losowe: nie dotyczy.
 
 Odtworzenie: `npm run analyses -- --write`. Pełny scenariusz wejściowy jest zapisany w JSON raportu.
 
