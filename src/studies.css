@@ -98,6 +98,34 @@
 .study-matrix-controls button {
   font-size: 0.78rem;
 }
+.study-corners {
+  margin: 24px 0;
+  max-width: 850px;
+}
+.study-corners p {
+  font-size: 0.87rem;
+  line-height: 1.7;
+}
+.study-corners table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: clamp(0.76rem, 1.5vw, 0.95rem);
+}
+.study-corners th,
+.study-corners td {
+  padding: 12px 8px;
+  border: 2px solid var(--paper);
+  text-align: center;
+}
+.study-corners th {
+  background: #edf0f0;
+}
+.study-corners td strong {
+  display: block;
+  line-height: 1.8;
+  font-variant-numeric: tabular-nums;
+}
 .study-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
@@ -158,16 +186,19 @@
   padding: 5px 9px;
   border-radius: 3px;
 }
+.study-corners .lc,
 .study-matrix .lc,
 .study-matrix-legend .lc {
   background: #d4e9e2;
   color: #124e43;
 }
+.study-corners .r,
 .study-matrix .r,
 .study-matrix-legend .r {
   background: #f1dcd5;
   color: #713822;
 }
+.study-corners .tie,
 .study-matrix .tie,
 .study-matrix-legend .tie {
   background: #f0e8ce;

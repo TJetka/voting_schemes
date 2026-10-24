@@ -8,6 +8,7 @@ import type {
   StudyReport,
 } from '../model/studies-types';
 import type { CommitteeType } from '../model/types';
+import { matrixCornerOutcomes, matrixMergeEffects } from '../model/study-publication';
 import { boundsText, downloadText, number, percent, signed } from './display';
 import { StudyOutcomeBar, StudySeatChart, type StudyChartPoint } from './StudiesCharts';
 import '../studies.css';
@@ -104,6 +105,7 @@ function MatrixStudy({ report, source }: { report: StudyReport; source: string }
   const selectedColumn = matrix.columns[selected.column];
   const robust = matrix.columnSummaries.filter((column) => column.guaranteedMajority);
   const strongest = matrix.columnSummaries[matrix.maximinLcColumnIndices[0]];
+  const corners = matrixCornerOutcomes(matrix);
   return (
     <section className="study-section" id="study-matrix" aria-labelledby="study-matrix-heading">
       <header>
@@ -137,6 +139,46 @@ function MatrixStudy({ report, source }: { report: StudyReport; source: string }
         >
           Pobierz macierz SVG
         </button>
+      </div>
+      <div className="study-corners">
+        <h3>Najpierw cztery skrajne układy</h3>
+        <p>
+          <strong>W dół: łączymy R.</strong> Układ L+C pozostaje ten sam.{' '}
+          <strong>W prawo: łączymy L+C.</strong> Układ R pozostaje ten sam.
+        </p>
+        <table aria-label="Cztery skrajne układy list">
+          <thead>
+            <tr>
+              <th scope="col">R ↓ / L+C →</th>
+              <th scope="col">L+C osobno</th>
+              <th scope="col">L+C razem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { label: 'R osobno', outcomes: [corners.separate, corners.lcUnited] },
+              { label: 'R razem', outcomes: [corners.rUnited, corners.bothUnited] },
+            ].map(({ label, outcomes }) => (
+              <tr key={label}>
+                <th scope="row">{label}</th>
+                {outcomes.map((outcome, index) => (
+                  <td key={index} className={winner(outcome)}>
+                    <strong>L+C {boundsText(outcome.lc)}</strong>
+                    <strong>R {boundsText(outcome.r)}</strong>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {matrixMergeEffects(matrix).map((effect) => (
+          <p key={effect}>{effect}</p>
+        ))}
+        <p>
+          <strong>Ten sam kolor nie oznacza tego samego wyniku.</strong> Kolor wskazuje tylko, kto
+          ma większość. R może odzyskać wiele mandatów, pozostając poniżej 231. Maksymalizacja
+          liczby mandatów i zdobycie większości to dwa różne warunki.
+        </p>
       </div>
       <div className="study-stat-grid">
         <div>
@@ -203,10 +245,11 @@ function MatrixStudy({ report, source }: { report: StudyReport; source: string }
         <span>Liczby w komórkach = mandaty L+C</span>
       </div>
       <p className="small muted">
-        Przewiń macierz w poziomie. Komórki można wybierać także strzałkami klawiatury. Wybierz
-        komórkę, aby zobaczyć obie sumy mandatów i dokładny skład list. Wszystkie{' '}
-        {matrix.rows.length} × {matrix.columns.length} podziały są policzone; formy prawne stosujemy
-        według jednego wybranego założenia.
+        Liczba w każdej komórce to mandaty L+C, także w wierszach opisujących R. Spadek tej liczby
+        oznacza wzrost mandatów R. Przewiń macierz w poziomie. Komórki można wybierać także
+        strzałkami klawiatury. Wybierz komórkę, aby zobaczyć obie sumy mandatów i dokładny skład
+        list. Wszystkie {matrix.rows.length} × {matrix.columns.length} podziały są policzone; formy
+        prawne stosujemy według jednego wybranego założenia.
       </p>
       <div
         className="study-matrix-scroll"

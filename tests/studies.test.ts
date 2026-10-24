@@ -75,6 +75,25 @@ describe('frozen, reproducible published studies', () => {
 
 describe('all R versus L+C electoral partitions', () => {
   it.each(['coalition', 'ordinary'] as const)(
+    'maximizes each block with its united list against every fixed opponent arrangement under %s',
+    (policy) => {
+      const matrix = report.matrices[policy];
+      const unitedRow = matrix.rows.findIndex((row) => row.groups.length === 1);
+      const unitedColumn = matrix.columns.findIndex((column) => column.groups.length === 1);
+      for (const [column] of matrix.columns.entries()) {
+        const fixedLc = matrix.cells.filter((cell) => cell.column === column);
+        const unitedR = fixedLc.find((cell) => cell.row === unitedRow)!.outcome.r;
+        expect(unitedR.lower).toBe(Math.max(...fixedLc.map((cell) => cell.outcome.r.upper)));
+      }
+      for (const [row] of matrix.rows.entries()) {
+        const fixedR = matrix.cells.filter((cell) => cell.row === row);
+        const unitedLc = fixedR.find((cell) => cell.column === unitedColumn)!.outcome.lc;
+        expect(unitedLc.lower).toBe(Math.max(...fixedR.map((cell) => cell.outcome.lc.upper)));
+      }
+    },
+  );
+
+  it.each(['coalition', 'ordinary'] as const)(
     'covers each Cartesian-product configuration once under %s joint-list treatment',
     (policy) => {
       const matrix = report.matrices[policy];

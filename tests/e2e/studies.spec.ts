@@ -19,6 +19,34 @@ async function downloadedText(
   return { filename: file.suggestedFilename(), text: await readFile((await file.path())!, 'utf8') };
 }
 
+test('the matrix overview shows that right-wing unification gains seats even without changing the winner', async ({
+  page,
+}) => {
+  await openReport(page);
+  const table = page.getByRole('table', { name: 'Cztery skrajne układy list', exact: true });
+  for (const policy of ['coalition', 'ordinary']) {
+    await page
+      .getByRole('combobox', { name: 'Próg wspólnych list w analizie' })
+      .selectOption(policy);
+    const rows = table.locator('tbody tr');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0).locator('td').nth(0)).toContainText('L+C 226');
+    await expect(rows.nth(0).locator('td').nth(0)).toContainText('R 234');
+    await expect(rows.nth(0).locator('td').nth(1)).toContainText('L+C 264');
+    await expect(rows.nth(0).locator('td').nth(1)).toContainText('R 196');
+    await expect(rows.nth(1).locator('td').nth(0)).toContainText('L+C 194');
+    await expect(rows.nth(1).locator('td').nth(0)).toContainText('R 266');
+    await expect(rows.nth(1).locator('td').nth(1)).toContainText('L+C 233');
+    await expect(rows.nth(1).locator('td').nth(1)).toContainText('R 227');
+  }
+  await expect(page.locator('.study-corners')).toContainText('196 → 227 (zmiana o 31)');
+  await expect(page.locator('.study-corners')).toContainText(
+    'Ten sam kolor nie oznacza tego samego wyniku.',
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
 test('published report stays frozen while the editable laboratory keeps its scenario', async ({
   page,
 }) => {

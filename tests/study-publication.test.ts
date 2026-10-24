@@ -3,7 +3,13 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createDefaultScenario } from '../src/model/presets';
 import { buildStudyReport, type StudyReport } from '../src/model/studies';
-import { studyCsv, studyMarkdown, type StudyPublication } from '../src/model/study-publication';
+import {
+  matrixCornerOutcomes,
+  matrixMergeEffects,
+  studyCsv,
+  studyMarkdown,
+  type StudyPublication,
+} from '../src/model/study-publication';
 
 /** Read quoted CSV records, retaining embedded delimiters/newlines to test exported field boundaries. */
 function readCsv(csv: string): string[][] {
@@ -272,6 +278,47 @@ describe('complete, machine-readable publication CSV', () => {
 });
 
 describe('publishable conclusions and self-contained source links', () => {
+  it.each(['coalition', 'ordinary'] as const)(
+    'explains the effect of merging either block under %s',
+    (policy) => {
+      const matrix = report.matrices[policy];
+      const corners = matrixCornerOutcomes(matrix);
+      for (const [key, lc, r] of [
+        ['separate', 226, 234],
+        ['lcUnited', 264, 196],
+        ['rUnited', 194, 266],
+        ['bothUnited', 233, 227],
+      ] as const) {
+        expect(corners[key].lc).toEqual({ lower: lc, upper: lc });
+        expect(corners[key].r).toEqual({ lower: r, upper: r });
+      }
+      expect(matrixMergeEffects(matrix)[0]).toContain('234 → 266 (zmiana o 32)');
+      expect(matrixMergeEffects(matrix)[0]).toContain('196 → 227 (zmiana o 31)');
+      expect(matrixMergeEffects(matrix)[1]).toContain('226 → 264 (zmiana o 38)');
+      expect(matrixMergeEffects(matrix)[1]).toContain('194 → 233 (zmiana o 39)');
+      // Presentation order must not change which configurations are being compared.
+      expect(
+        matrixCornerOutcomes({
+          ...matrix,
+          rows: [...matrix.rows].reverse(),
+          columns: [...matrix.columns].reverse(),
+          cells: [...matrix.cells].reverse().map((cell) => ({
+            ...cell,
+            row: matrix.rows.length - 1 - cell.row,
+            column: matrix.columns.length - 1 - cell.column,
+          })),
+        }),
+      ).toEqual(corners);
+    },
+  );
+
+  it('includes both blocks and merger effects in the publication overview', () => {
+    expect(markdown).toContain('| R osobno | L+C 226 : R 234 | L+C 264 : R 196 |');
+    expect(markdown).toContain('| R razem | L+C 194 : R 266 | L+C 233 : R 227 |');
+    expect(markdown).toContain('Połączenie R:');
+    expect(markdown).toContain('Ten sam kolor nie oznacza tego samego wyniku');
+  });
+
   it('reports all five studies with correct block outcomes and separate pair outcomes', () => {
     expect(markdown.match(/^## [1-5]\. /gm)).toHaveLength(5);
     expect(markdown).toContain('**Punkt wyjścia:** L+C 226 : R 234');

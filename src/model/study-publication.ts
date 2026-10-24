@@ -1,4 +1,10 @@
-import type { PairStudy, StudyOutcome, StudyPoint, StudyReport } from './studies-types';
+import type {
+  CoalitionMatrixStudy,
+  PairStudy,
+  StudyOutcome,
+  StudyPoint,
+  StudyReport,
+} from './studies-types';
 import type { SeatBounds } from './types';
 
 export interface StudyPublication {
@@ -19,6 +25,44 @@ const pct = (units: number) =>
 const seats = (bounds: SeatBounds) =>
   bounds.lower === bounds.upper ? String(bounds.lower) : `${bounds.lower}–${bounds.upper}`;
 const blocks = (outcome: StudyOutcome) => `L+C ${seats(outcome.lc)} : R ${seats(outcome.r)}`;
+
+/** Four observed matrix outcomes, identified by list membership rather than display order. */
+export function matrixCornerOutcomes(
+  matrix: CoalitionMatrixStudy,
+): Record<'separate' | 'lcUnited' | 'rUnited' | 'bothUnited', StudyOutcome> {
+  const outcome = (rUnited: boolean, lcUnited: boolean): StudyOutcome => {
+    const row = matrix.rows.findIndex((partition) =>
+      rUnited
+        ? partition.groups.length === 1
+        : partition.groups.every((group) => group.length === 1),
+    );
+    const column = matrix.columns.findIndex((partition) =>
+      lcUnited
+        ? partition.groups.length === 1
+        : partition.groups.every((group) => group.length === 1),
+    );
+    const cell = matrix.cells.find((item) => item.row === row && item.column === column);
+    if (!cell) throw new Error('Brak skrajnego układu list w macierzy.');
+    return cell.outcome;
+  };
+  return {
+    separate: outcome(false, false),
+    lcUnited: outcome(false, true),
+    rUnited: outcome(true, false),
+    bothUnited: outcome(true, true),
+  };
+}
+
+/** Explain each merger while holding the opponent's arrangement fixed; units are mandates. */
+export function matrixMergeEffects(matrix: CoalitionMatrixStudy): string[] {
+  const { separate, lcUnited, rUnited, bothUnited } = matrixCornerOutcomes(matrix);
+  const change = (before: SeatBounds, after: SeatBounds) =>
+    `${seats(before)} → ${seats(after)} (zmiana o ${seats({ lower: after.lower - before.upper, upper: after.upper - before.lower })})`;
+  return [
+    `Połączenie R: przy osobnych listach L+C wynik R zmienia się ${change(separate.r, rUnited.r)} mandatów; przy jednej liście L+C: ${change(lcUnited.r, bothUnited.r)} mandatów.`,
+    `Połączenie L+C: przy osobnych listach R wynik L+C zmienia się ${change(separate.lc, lcUnited.lc)} mandatów; przy jednej liście R: ${change(rUnited.lc, bothUnited.lc)} mandatów.`,
+  ];
+}
 
 function sampleList(
   points: StudyPoint[],
@@ -46,6 +90,7 @@ export function studyMarkdown(publication: StudyPublication): string {
   const figures =
     'https://raw.githubusercontent.com/TJetka/voting_schemes/main/analyses/pollster-2026-10';
   const both = report.matrices.coalition;
+  const corners = matrixCornerOutcomes(both);
   const unitedColumn = both.columns.findIndex((column) => column.groups.length === 1);
   const unitedRow = both.rows.findIndex((row) => row.groups.length === 1);
   const united = both.cells.find((cell) => cell.column === unitedColumn && cell.row === unitedRow)!;
@@ -69,6 +114,18 @@ export function studyMarkdown(publication: StudyPublication): string {
     '## 1. Wszystkie układy list: macierz R × L+C',
     '',
     `${both.rows.length} wierszy R × ${both.columns.length} kolumn L+C = ${both.cells.length} kompletnych układów dla każdej polityki progowej. Nie ma połączeń C z R. Nieaktywny PPS pozostaje poza podziałami. Wspólne listy mają jednolicie próg 8% lub 5%; osobne partie zawsze 5%. Nie badamy wszystkich niezależnych kombinacji form prawnych w jednej macierzy.`,
+    '',
+    '### Najpierw cztery skrajne układy',
+    '',
+    'W każdej komórce podajemy mandaty obu bloków. Czytaj w dół, aby zobaczyć efekt połączenia R przy tym samym układzie L+C; w prawo — efekt połączenia L+C przy tym samym układzie R.',
+    '',
+    '| Układ R ↓ / Układ L+C → | L+C osobno | L+C razem |',
+    '| --- | --- | --- |',
+    `| R osobno | ${blocks(corners.separate)} | ${blocks(corners.lcUnited)} |`,
+    `| R razem | ${blocks(corners.rUnited)} | ${blocks(corners.bothUnited)} |`,
+    '',
+    ...matrixMergeEffects(both).flatMap((effect) => [effect, '']),
+    'Kolor pełnej macierzy oznacza tylko większość, a liczba w komórce — mandaty L+C. Ten sam kolor nie oznacza tego samego wyniku: R może odzyskać wiele mandatów, pozostając poniżej 231. Maksymalizacja liczby mandatów i zdobycie większości to dwa różne warunki.',
     '',
     '| Wspólne listy | Zakres mandatów L+C | Większość L+C | Większość R | Brak większości | Nierozstrzygnięte |',
     '| --- | ---: | ---: | ---: | ---: | ---: |',
