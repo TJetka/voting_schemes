@@ -1004,3 +1004,18 @@ All web sources below were checked on 23 October 2026. Legal and polling inputs 
 
 The geographic mapping, numerical regularizer, support transfer rules, permitted family combinations, perfect-retention assumption, UI choices and calculated regression fixtures are design choices or calculations specified in this document, not claims sourced from polling organisations or PKW.
 
+
+
+## 17 Published two-block studies (24 October 2026)
+
+The user requested a separate, publishable analysis page, with the final outcomes of the complete blocks as the principal result. For these studies only, C is always part of L+C and never joins R. Use the existing Pollster 19–21 October 2026 snapshot and the family geography of model 1.1.0; report calculations are frozen independently of editable workspace state.
+
+1. Enumerate all within-R partitions (15) and within-L+C partitions (52), producing a 15-row × 52-column matrix for each uniform common-list legal policy (8% coalition or 5% ordinary). Singleton lists have 5%; no cross-block grouping is allowed. Preserve atomic district votes. Label the final LC/R seat outcome for every cell and distinguish enumeration counts from probabilities.
+2. Redistribute the fixed 12.91% electorate between Razem and Nowa Lewica, nominally every 0.25 p.p. from zero to the full total. Keep other parties' votes and separate lists fixed. Show LC/R first and the pair's combined seats second.
+3. Repeat for Konfederacja and KKP (20.21%).
+4. Repeat for PiS and Rozwój Plus (27.67%). All three pairs share a historical proxy within their camp, so fixed local cohort totals can be split proportionally without refitting the opponents.
+5. Compare the default separate L+C entities with one pooled party and two hypothetical ordinary 5% parties, holding R at its default separate-list arrangement. The user confirmed identical regional profiles for the two hypothetical parties: each district's pooled L+C votes are divided by the same fraction. Sweep their combined 51.61% nominally every 0.5 p.p.; hypothetical shares must never be labelled measured polling values.
+
+Add mirrored grid points to eliminate party-label asymmetry, endpoints, current pair shares, the exact two-party midpoint and legal threshold samples with adjacent 0.000001 p.p. neighbours. Do not claim global continuous optima or precisely located seat transitions from a sampled grid. Internal synthetic-party ties may leave the total block outcome exact; compute block bounds directly.
+
+Deliver clear Polish findings, a navigable report, accessible tables, downloadable standalone SVGs, Markdown conclusions, full CSV and input/result JSON. Record frozen configuration, versions, source/code hashes and Git provenance. Recompute numerical artifacts in tests and verify selected fixtures with an independent implementation. Existing underlying model and source-data versions remain unchanged; version the study method separately.

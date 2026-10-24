@@ -61,6 +61,21 @@ With the default poll and separate lists, the new model gives L 226 / R 234 / C 
 
 Eligibility includes 5%/8% thresholds, the statutory fallback and explicit minority exemption in historical replay. List-level d’Hondt ties and numerical boundary ambiguities are visible rather than resolved by entity order. Historical results are validated against independently published official district seats. Scenario exports preserve model/data versions; JSON, URL and local state are validated before use.
 
+## Published analyses
+
+Open the **Analizy i wnioski** tab or [the report directly](https://tjetka.github.io/voting_schemes/?view=analyses). It always uses the frozen Pollster snapshot and the 2023 family geography, independently of workspace edits. The main outcome is the complete L+C versus R seat allocation.
+
+The report contains a 15×52 matrix for each common-list threshold policy, three fixed-total party-pair transfers, and a one-versus-two-party experiment for the pooled L+C electorate. Pair sweeps use a nominal 0.25 p.p. step; the hypothetical split uses 0.5 p.p. Mirrored samples, current pair shares, endpoints, the midpoint and exact threshold neighbours avoid misleading endpoint or threshold omissions. Sweep extrema are explicitly sampled; the partition matrix is exhaustive.
+
+Read the [publication text](analyses/pollster-2026-10/wnioski.md), use the [complete CSV](analyses/pollster-2026-10/wyniki.csv), or export standalone SVG figures and the full input/result JSON from the report. Figures are also committed beside the publication text. No additional dependencies are required.
+
+```sh
+npm run analyses:check         # recompute and verify the frozen report and source/data hashes
+npm run analyses -- --write    # explicitly regenerate derived report artifacts after reviewed changes
+```
+
+The generator records the full input scenario, poll dates, model/data/analysis versions, data and analysis-source SHA-256 hashes, generation time, Git revision and working-tree state. It is deterministic apart from provenance timestamps and revision metadata. Historical PKW source files remain immutable. In an ordinary clone Git metadata is found automatically; this protected session uses `ANALYSIS_GIT_DIRECTORY=/tmp/coalition-git` when generating artifacts.
+
 ## Deployment
 
 Target: [TJetka/voting_schemes](https://github.com/TJetka/voting_schemes), project path `/voting_schemes/`. In GitHub **Settings → Pages → Build and deployment**, select **GitHub Actions**. The Pages workflow validates pull requests and deploys successful pushes to `main`. Deployment has scoped Pages and OIDC permissions; validation has read-only repository access.

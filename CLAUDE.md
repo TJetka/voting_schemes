@@ -9,6 +9,7 @@ Laboratorium koalicji is the static Polish Sejm coalition and threshold simulato
 - Workers run exhaustive partitions and sensitivity; request IDs prevent stale results.
 - Tiny Python 3.12 standard-library importer plus pytest/ruff development tools.
 - Public official aggregate inputs in `data/raw/`; bundled JSON and manifest in `src/data/`.
+- Published studies are frozen artifacts from `src/model/studies.ts`, generated with `npm run analyses -- --write`; `npm run analyses:check` verifies inputs and numerical results. UI workspace edits must not alter the report. Whole L+C/R blocks are primary; subgroup seats are secondary. Synthetic A/B parties have no measured poll split.
 - Static GitHub Pages deployment to `/voting_schemes/`; hash state, no server routes.
 - No AI integration, secret, API key, database, live polling or authentication.
 

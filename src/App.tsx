@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import CoalitionBuilder from './components/CoalitionBuilder';
 import Comparisons, { type PinnedScenario } from './components/Comparisons';
 import Districts from './components/Districts';
@@ -23,7 +23,9 @@ import { createDefaultScenario, createSyntheticScenario } from './model/presets'
 import type { Scenario } from './model/types';
 import { validateScenario } from './model/validation';
 
-type Tab = 'coalitions' | 'exhaustive' | 'sensitivity';
+const PublishedStudies = lazy(() => import('./components/PublishedStudies'));
+
+type Tab = 'coalitions' | 'exhaustive' | 'sensitivity' | 'studies';
 type Dialog = 'methodology' | 'import' | 'history' | 'share' | null;
 
 function initialState(): { scenario: Scenario; error: string } {
@@ -44,7 +46,11 @@ export default function App() {
   const [future, setFuture] = useState<Scenario[]>([]);
   const [notice, setNotice] = useState(initial.error);
   const [isError, setIsError] = useState(Boolean(initial.error));
-  const [tab, setTab] = useState<Tab>('coalitions');
+  const [tab, setTab] = useState<Tab>(() =>
+    new URLSearchParams(window.location.search).get('view') === 'analyses'
+      ? 'studies'
+      : 'coalitions',
+  );
   const [dialog, setDialog] = useState<Dialog>(null);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
@@ -73,6 +79,13 @@ export default function App() {
         (historicalData.officialSeats.districts[String(item.districtId)]?.[committee.id] ?? 0),
     ),
   );
+  const selectTab = (next: Tab) => {
+    setTab(next);
+    const url = new URL(window.location.href);
+    if (next === 'studies') url.searchParams.set('view', 'analyses');
+    else url.searchParams.delete('view');
+    window.history.replaceState(null, '', url);
+  };
   const error = (message: string) => {
     setNotice(message);
     setIsError(true);
@@ -185,7 +198,7 @@ export default function App() {
   };
   const result = calculation.result;
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${tab === 'studies' ? 'studies-view' : ''}`}>
       <a
         className="visually-hidden"
         href="#workspace"
@@ -211,9 +224,11 @@ export default function App() {
         <div className="top-actions">
           <button onClick={() => setDialog('history')}>Odtwórz 2023</button>
           <button onClick={() => setDialog('methodology')}>Metoda i źródła</button>
-          <button className="primary" onClick={() => void share()}>
-            Udostępnij ↗
-          </button>
+          {tab !== 'studies' && (
+            <button className="primary" onClick={() => void share()}>
+              Udostępnij ↗
+            </button>
+          )}
         </div>
       </header>
       <section className="hero">
@@ -232,20 +247,21 @@ export default function App() {
         <div className="source-stamp">
           <span className="badge live">Model scenariuszowy</span>
           <br />
-          <strong>{scenario.name}</strong>
+          <strong>{tab === 'studies' ? 'Raport: zamrożony sondaż Pollster' : scenario.name}</strong>
           <br />
           <span>Pollster · 19–21.10.2026 · n = 1014</span>
           <br />
           <span>41 okręgów · podział mandatów 2023</span>
         </div>
       </section>
-      {result && <ResultBar scenario={scenario} result={result} />}
+      {result && tab !== 'studies' && <ResultBar scenario={scenario} result={result} />}
       <nav className="tabs" role="tablist" aria-label="Obszary laboratorium">
         {(
           [
             { id: 'coalitions', title: 'Koalicje' },
             { id: 'exhaustive', title: 'Wszystkie konfiguracje' },
             { id: 'sensitivity', title: 'Wrażliwość' },
+            { id: 'studies', title: 'Analizy i wnioski' },
           ] as const
         ).map((item, index) => (
           <button
@@ -254,14 +270,14 @@ export default function App() {
             aria-controls={`tab-${item.id}`}
             id={`nav-${item.id}`}
             key={item.id}
-            onClick={() => setTab(item.id)}
+            onClick={() => selectTab(item.id)}
           >
             <span className="tab-number">0{index + 1}</span>
             {item.title}
           </button>
         ))}
       </nav>
-      {notice && (
+      {notice && tab !== 'studies' && (
         <div className={`notice ${isError ? 'error' : ''}`} role={isError ? 'alert' : 'status'}>
           <span>{notice}</span>
           <button aria-label="Zamknij komunikat" onClick={() => setNotice('')}>
@@ -269,166 +285,182 @@ export default function App() {
           </button>
         </div>
       )}
-      {calculation.error && (
+      {calculation.error && tab !== 'studies' && (
         <div className="notice error" role="alert">
           Błąd modelu: {calculation.error}
           <button onClick={() => change(createDefaultScenario())}>Przywróć sondaż</button>
         </div>
       )}
-      {result?.warnings.map((warning) => (
-        <p className="callout warning" key={warning} role="status">
-          {warning}
-        </p>
-      ))}
+      {tab !== 'studies' &&
+        result?.warnings.map((warning) => (
+          <p className="callout warning" key={warning} role="status">
+            {warning}
+          </p>
+        ))}
       <main id="workspace" tabIndex={-1}>
-        {result && (
-          <>
-            <div className="toolbar" style={{ justifyContent: 'space-between', marginBottom: 18 }}>
-              <div className="inline">
-                <label className="field" style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  Wczytaj wariant
-                  <select
-                    aria-label="Wariant początkowy"
-                    value=""
-                    onChange={(event) => {
-                      if (event.target.value)
-                        change(
-                          event.target.value === 'synthetic'
-                            ? createSyntheticScenario()
-                            : createDefaultScenario(),
-                          'Wczytano wariant. Przypięta baza pozostaje zamrożona.',
-                        );
+        {tab === 'studies' ? (
+          <div role="tabpanel" id="tab-studies" aria-labelledby="nav-studies">
+            <Suspense fallback={<p role="status">Wczytywanie raportu…</p>}>
+              <PublishedStudies />
+            </Suspense>
+          </div>
+        ) : (
+          result && (
+            <>
+              <div
+                className="toolbar"
+                style={{ justifyContent: 'space-between', marginBottom: 18 }}
+              >
+                <div className="inline">
+                  <label className="field" style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    Wczytaj wariant
+                    <select
+                      aria-label="Wariant początkowy"
+                      value=""
+                      onChange={(event) => {
+                        if (event.target.value)
+                          change(
+                            event.target.value === 'synthetic'
+                              ? createSyntheticScenario()
+                              : createDefaultScenario(),
+                            'Wczytano wariant. Przypięta baza pozostaje zamrożona.',
+                          );
+                      }}
+                    >
+                      <option value="">Wybierz…</option>
+                      <option value="poll">Pollster · 19–21.10.2026</option>
+                      <option value="synthetic">Dziesięć podmiotów — scenariusz syntetyczny</option>
+                    </select>
+                  </label>
+                  <button aria-label="Cofnij zmianę" disabled={!past.length} onClick={undo}>
+                    ↶ Cofnij
+                  </button>
+                  <button aria-label="Ponów zmianę" disabled={!future.length} onClick={redo}>
+                    ↷ Ponów
+                  </button>
+                </div>
+                <div className="inline">
+                  <button
+                    className="small"
+                    onClick={() => {
+                      setDialog('import');
+                      setImportError('');
                     }}
                   >
-                    <option value="">Wybierz…</option>
-                    <option value="poll">Pollster · 19–21.10.2026</option>
-                    <option value="synthetic">Dziesięć podmiotów — scenariusz syntetyczny</option>
-                  </select>
-                </label>
-                <button aria-label="Cofnij zmianę" disabled={!past.length} onClick={undo}>
-                  ↶ Cofnij
-                </button>
-                <button aria-label="Ponów zmianę" disabled={!future.length} onClick={redo}>
-                  ↷ Ponów
-                </button>
-              </div>
-              <div className="inline">
-                <button
-                  className="small"
-                  onClick={() => {
-                    setDialog('import');
-                    setImportError('');
-                  }}
-                >
-                  Import JSON
-                </button>
-                <button
-                  className="small"
-                  onClick={() =>
-                    downloadText(
-                      'scenariusz-koalicji.json',
-                      serializeScenario(scenario),
-                      'application/json;charset=utf-8',
-                    )
-                  }
-                >
-                  Eksport JSON
-                </button>
-                <button
-                  className="small"
-                  onClick={() =>
-                    downloadText(
-                      'mandaty-koalicji.csv',
-                      exportResultsCsv(scenario, result),
-                      'text/csv;charset=utf-8',
-                    )
-                  }
-                >
-                  Eksport CSV
-                </button>
-                <button
-                  className="small subtle"
-                  onClick={() => change(createDefaultScenario(), 'Przywrócono oryginalny sondaż.')}
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-            {tab === 'coalitions' ? (
-              <div role="tabpanel" id="tab-coalitions" aria-labelledby="nav-coalitions">
-                <div className="workspace">
-                  <SupportEditor scenario={scenario} onChange={change} onError={error} />
-                  <div className="stack">
-                    <CoalitionBuilder
-                      scenario={scenario}
-                      result={result}
-                      baseline={baseline}
-                      baselineResult={baselineResult}
-                      onChange={change}
-                      onError={error}
-                    />
-                    <ResultSummary
-                      scenario={scenario}
-                      result={result}
-                      baselineResult={baselineResult}
-                    />
-                  </div>
+                    Import JSON
+                  </button>
+                  <button
+                    className="small"
+                    onClick={() =>
+                      downloadText(
+                        'scenariusz-koalicji.json',
+                        serializeScenario(scenario),
+                        'application/json;charset=utf-8',
+                      )
+                    }
+                  >
+                    Eksport JSON
+                  </button>
+                  <button
+                    className="small"
+                    onClick={() =>
+                      downloadText(
+                        'mandaty-koalicji.csv',
+                        exportResultsCsv(scenario, result),
+                        'text/csv;charset=utf-8',
+                      )
+                    }
+                  >
+                    Eksport CSV
+                  </button>
+                  <button
+                    className="small subtle"
+                    onClick={() =>
+                      change(createDefaultScenario(), 'Przywrócono oryginalny sondaż.')
+                    }
+                  >
+                    Reset
+                  </button>
                 </div>
-                <Comparisons
-                  scenario={scenario}
-                  result={result}
-                  pins={pins}
-                  baselineId={baselineId}
-                  onPin={() =>
-                    setPins([
-                      ...pins,
-                      { id: nextPin.current++, scenario: structuredClone(scenario) },
-                    ])
-                  }
-                  onBaseline={setBaselineId}
-                  onRemove={(id) => {
-                    const remaining = pins.filter((pin) => pin.id !== id);
-                    setPins(remaining);
-                    if (baselineId === id) setBaselineId(remaining[0].id);
-                  }}
-                  onOpen={openScenario}
-                  onRename={(id, name) =>
-                    setPins(
-                      pins.map((pin) =>
-                        pin.id === id ? { ...pin, scenario: { ...pin.scenario, name } } : pin,
-                      ),
-                    )
-                  }
-                />
-                <Districts
-                  scenario={scenario}
-                  result={result}
-                  baseline={baseline}
-                  baselineResult={baselineResult}
-                  selectedDistrict={district}
-                  onSelect={setDistrict}
-                />
               </div>
-            ) : (
-              <div role="tabpanel" id={`tab-${tab}`} aria-labelledby={`nav-${tab}`}>
-                <Exploration
-                  scenario={scenario}
-                  mode={tab}
-                  onOpenScenario={openScenario}
-                  onInspectDistrict={inspectDistrict}
-                />
-              </div>
-            )}
-          </>
+              {tab === 'coalitions' ? (
+                <div role="tabpanel" id="tab-coalitions" aria-labelledby="nav-coalitions">
+                  <div className="workspace">
+                    <SupportEditor scenario={scenario} onChange={change} onError={error} />
+                    <div className="stack">
+                      <CoalitionBuilder
+                        scenario={scenario}
+                        result={result}
+                        baseline={baseline}
+                        baselineResult={baselineResult}
+                        onChange={change}
+                        onError={error}
+                      />
+                      <ResultSummary
+                        scenario={scenario}
+                        result={result}
+                        baselineResult={baselineResult}
+                      />
+                    </div>
+                  </div>
+                  <Comparisons
+                    scenario={scenario}
+                    result={result}
+                    pins={pins}
+                    baselineId={baselineId}
+                    onPin={() =>
+                      setPins([
+                        ...pins,
+                        { id: nextPin.current++, scenario: structuredClone(scenario) },
+                      ])
+                    }
+                    onBaseline={setBaselineId}
+                    onRemove={(id) => {
+                      const remaining = pins.filter((pin) => pin.id !== id);
+                      setPins(remaining);
+                      if (baselineId === id) setBaselineId(remaining[0].id);
+                    }}
+                    onOpen={openScenario}
+                    onRename={(id, name) =>
+                      setPins(
+                        pins.map((pin) =>
+                          pin.id === id ? { ...pin, scenario: { ...pin.scenario, name } } : pin,
+                        ),
+                      )
+                    }
+                  />
+                  <Districts
+                    scenario={scenario}
+                    result={result}
+                    baseline={baseline}
+                    baselineResult={baselineResult}
+                    selectedDistrict={district}
+                    onSelect={setDistrict}
+                  />
+                </div>
+              ) : (
+                <div role="tabpanel" id={`tab-${tab}`} aria-labelledby={`nav-${tab}`}>
+                  <Exploration
+                    scenario={scenario}
+                    mode={tab}
+                    onOpenScenario={openScenario}
+                    onInspectDistrict={inspectDistrict}
+                  />
+                </div>
+              )}
+            </>
+          )
         )}
       </main>
       <footer className="app-footer">
         <span>
-          Model scenariuszowy · bez prognoz i prawdopodobieństw · wszystkie obliczenia w
-          przeglądarce
+          Model scenariuszowy · bez prognoz i prawdopodobieństw · jawne założenia i odtwarzalne
+          obliczenia
         </span>
         <span>
-          {scenario.modelVersion} / {scenario.dataVersion} · scenariusz {scenarioId(scenario)}
+          {tab === 'studies'
+            ? 'Raport na podstawie sondażu Pollster · 19–21.10.2026'
+            : `${scenario.modelVersion} / ${scenario.dataVersion} · scenariusz ${scenarioId(scenario)}`}
         </span>
       </footer>
       <dialog ref={modal} onClose={() => setDialog(null)} aria-labelledby="dialog-title">
@@ -447,7 +479,9 @@ export default function App() {
           </button>
         </header>
         <div className="dialog-body">
-          {dialog === 'methodology' && <Methodology scenario={scenario} />}
+          {dialog === 'methodology' && (
+            <Methodology scenario={tab === 'studies' ? createDefaultScenario() : scenario} />
+          )}
           {dialog === 'import' && (
             <>
               <p>

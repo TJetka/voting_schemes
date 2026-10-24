@@ -69,3 +69,14 @@ User-requested scope: apply 2023 regional heterogeneity within left/liberal, rig
 The adjustment is complete and deployed. [Run 39959628761](https://github.com/TJetka/voting_schemes/actions/runs/39959628761) passed **83 TypeScript unit tests, 10 Python importer tests, 16 Playwright journeys**, strict type checking, formatting, the repository-subpath build and GitHub Pages publication. The public application at https://tjetka.github.io/voting_schemes/ was verified in Chrome on 23 October 2026: existing 1.0.0 state retained 228/232 seats, explicit adoption produced 226/234, and the district inspector displayed Warsaw camp shares 64.99% / 29.93% / 4.59% with national averages preserved.
 
 Native Chrome also verified a 2 p.p. KO→NL transfer leaves Warsaw camp shares unchanged and the new model completes all 2,385 exhaustive configurations (4.16 s observed). Official source data and dependencies are unchanged. Two CI attempts timed out while installing Chromium; the owner explicitly approved increasing only that workflow step's timeout from five to ten minutes. The approved run then validated and deployed successfully. Existing saved scenarios keep their original mode until explicit adoption; new scenarios default to model 1.1.0's family geography.
+
+
+## Published analyses: two blocks and vote splitting
+
+Requested on 24 October 2026. Use the existing dated Pollster snapshot and family geography; the report always presents L+C versus R as its main outcome. The user confirmed that the two hypothetical C+L parties should share the same pooled regional profile.
+
+1. Compute the Cartesian product of 15 right-wing set partitions and 52 L+C partitions (780 cells), under both common-list threshold policies; preserve all baseline atomic votes.
+2. Sweep the three requested voter pairs from zero to their fixed combined share, nominally every 0.25 p.p.; add mirrored samples, current shares and exact threshold neighbours. Show pair mandates as a secondary outcome.
+3. Compare default L+C fragmentation, one party, and two hypothetical 5% parties sharing the pooled L+C profile. Sweep every 0.5 p.p. with mirrored samples, midpoint and exact threshold probes; hold R fixed.
+4. Add an independently accessible report tab, readable findings, matrix and sample charts, data tables, standalone SVGs and Markdown/CSV/JSON exports. Keep published calculations independent of workspace edits.
+5. Record frozen inputs, model/data/analysis versions, source hashes and code provenance; verify independent numerical fixtures, matrix coverage, margins, endpoint equivalence and block outcomes under internal ties. Run full checks and publish through the existing workflow.

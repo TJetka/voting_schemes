@@ -1,6 +1,6 @@
 {
   "name": "laboratorium-koalicji",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -16,8 +16,10 @@
     "preview": "vite preview --host 127.0.0.1",
     "data:import": "python3 scripts/import_pkw.py",
     "check": "npm run typecheck && npm test && npm run build",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"*.config.ts\" package.json",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"*.config.ts\" package.json"
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"*.config.ts\" \"scripts/*.{mjs,tsx}\" package.json",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\" \"*.config.ts\" \"scripts/*.{mjs,tsx}\" package.json",
+    "analyses": "node scripts/build_studies.mjs",
+    "analyses:check": "node scripts/build_studies.mjs --check"
   },
   "dependencies": {
     "react": "19.3.1",
