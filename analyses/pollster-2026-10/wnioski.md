@@ -103,7 +103,7 @@ Przesunięcia par badamy nominalnie co 0,25 p.p., a podział A/B co 0,5 p.p., li
 
 Model 1.1.0; analiza 1.0.0; dane pkw-2023-v1; geografia family; składnik jednorodny 0.01.
 
-Wygenerowano: 2026-10-24T08:32:17.514Z. Kod: 3b27148b7fc301ac59747c6a6141e7adb75963e5; zmiany robocze przy generowaniu: tak. SHA-256 źródeł analizy: 12b422d3b71b7d9c8791113d5d802b851ac248e0cd75f81be962b13cdf8e8951. SHA-256 danych PKW: 48c9842178c202a1ad1cbc37caa9ac931ed4e47970c82d07c91fac11ae7b2a0a. Model deterministyczny, ziarno losowe: nie dotyczy.
+Wygenerowano: 2026-10-24T08:36:03.689Z. Kod: 946d9f87710c682d35500f2664c54e1a40486301; zmiany robocze przy generowaniu: nie. SHA-256 źródeł analizy: 12b422d3b71b7d9c8791113d5d802b851ac248e0cd75f81be962b13cdf8e8951. SHA-256 danych PKW: 48c9842178c202a1ad1cbc37caa9ac931ed4e47970c82d07c91fac11ae7b2a0a. Model deterministyczny, ziarno losowe: nie dotyczy.
 
 Odtworzenie: `npm run analyses -- --write`. Pełny scenariusz wejściowy jest zapisany w JSON raportu.
 
